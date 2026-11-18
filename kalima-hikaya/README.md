@@ -23,7 +23,7 @@
 - ما في سيرفر، فكل تلفون بيشتغل لحاله. 200 أو 2000 نفس الإشي، والصفحة بتضل تشتغل حتى لو النت وقع بعد ما فتحت.
 - 25 طاولة × 8: اطبعوا `out/table-cards.pdf` (13 ورقة)، قصّوا كل ورقة بالنص، وحطّوا كرت على كل طاولة.
 - ميسّر واحد للقاعة: افتحوا `#stage` على البروجكتر. ميسّر لكل طاولة: كل واحد بيفتح `#facilitator`.
-- الاستضافة المفضّلة: GitHub Pages (Settings ← Pages ← Deploy from a branch ← اختاروا الفرع و `/ (root)`). الرابط: `https://mahdeeka.github.io/Mahdeeka/kalima-hikaya/`. الكروت معمولة لهاد الرابط. إذا بتستعملوا رابط ثاني، شغّلوا `make_cards.py` من جديد مع الرابط الجديد.
+- الرابط اللي بالـQR هلّق: `https://claude.ai/artifact/HF9xZzyCsDaFTbw6eo41fK` (مفتوح لأي حدا معه الرابط). بديل: GitHub Pages (Settings ← Pages ← Deploy from a branch ← الفرع و `/ (root)`)، والرابط بصير `https://mahdeeka.github.io/Mahdeeka/kalima-hikaya/`. إذا غيّرتوا الرابط، شغّلوا `make_cards.py` من جديد مع الرابط الجديد.
 
 ## كيف كل واحد بتطلعله كلمة مختلفة بدون سيرفر
 

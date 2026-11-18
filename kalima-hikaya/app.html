@@ -766,6 +766,8 @@ details.panel[open] > summary::after{content:"−"}
     }
   ];
   var LAST = GROUPS.length - 1;
+  // The public link people scan; used for the QR when the page runs inside the artifact viewer.
+  var PUBLIC_LINK = "https://claude.ai/artifact/HF9xZzyCsDaFTbw6eo41fK";
   var MAX_SEATS = 10;
 
   // ------------------------------------------------------------------
@@ -1421,7 +1423,7 @@ details.panel[open] > summary::after{content:"−"}
   (function initQR() {
     var standalone = false;
     try { standalone = window.self === window.top && /^https?:$/.test(location.protocol); } catch (e) {}
-    if (!fac.link && standalone) fac.link = location.origin + location.pathname;
+    if (!fac.link) fac.link = standalone ? location.origin + location.pathname : PUBLIC_LINK;
     $("#qr-link").value = fac.link;
     $("#st-link").value = fac.link;
     $("#qr-link").addEventListener("input", function (e) { setLink(e.target.value, "fac"); });
