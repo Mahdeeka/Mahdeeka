@@ -296,9 +296,56 @@ details.panel[open] > summary::after{content:"−"}
 .qr-empty{color:var(--muted-on-paper);font-size:14px;text-align:center;padding:40px 12px;line-height:1.6}
 .qr-url{font-size:13px;direction:ltr;text-align:left}
 
+
+/* ---------- room screen (projector): the whole wall takes the round's suit ---------- */
+.stage-view{position:fixed;inset:0;z-index:5;overflow-y:auto;background:var(--suit);color:var(--on-suit);display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:clamp(8px,2vh,22px);
+  padding-top:calc(clamp(14px,3vh,34px) + env(safe-area-inset-top,0px));
+  padding-bottom:calc(clamp(10px,2vh,20px) + env(safe-area-inset-bottom,0px));
+  padding-left:max(clamp(16px,4vw,56px),env(safe-area-inset-left,0px));
+  padding-right:max(clamp(16px,4vw,56px),env(safe-area-inset-right,0px));
+  transition:background-color .4s ease}
+.stage-view::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:repeating-linear-gradient(135deg,var(--on-suit-faint) 0 1.5px,transparent 1.5px 18px);opacity:.45}
+.st-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.st-round{display:flex;flex-direction:column;gap:2px;min-width:0}
+.st-round-num{font-size:clamp(14px,min(1.7vw,2.6vh),24px);font-weight:600;color:var(--on-suit-soft)}
+.st-round-title{font-size:clamp(24px,min(3.8vw,6vh),58px);font-weight:700;line-height:1.2}
+.st-logo{font-family:var(--font-logo);font-size:clamp(22px,min(2.8vw,4.4vh),42px);line-height:1.2}
+.st-main{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,2.2vh,26px);text-align:center;min-height:0;min-width:0}
+.st-block{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.6vh,18px);width:100%}
+.st-big{font-size:clamp(26px,min(5vw,7.5vh),76px);font-weight:700;line-height:1.3;text-wrap:balance}
+.st-sub{font-size:clamp(16px,min(2vw,3.2vh),30px);color:var(--on-suit-soft);text-wrap:balance}
+.st-seat{font-family:var(--font-word);font-size:clamp(48px,min(11vw,13vh),170px);line-height:1.1}
+.st-seat-pre{font-family:var(--font-ui);font-size:.36em;font-weight:600;color:var(--on-suit-soft);vertical-align:middle;margin-inline-end:.3em}
+.st-digits{font-size:clamp(72px,min(19vw,24vh),280px);font-weight:600;line-height:.95;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.st-bar{width:min(100%,960px);height:12px;background:var(--on-suit-faint);border-color:transparent}
+.st-bar span{background:var(--on-suit)}
+.stage-view.over .st-digits{animation:blink 1s steps(2,start) infinite}
+.st-status:empty{display:none}
+.st-status{font-size:clamp(16px,min(2vw,3vh),30px);font-weight:700}
+.st-status:not(:empty){background:var(--on-suit);color:var(--ink-on-paper);border-radius:99px;padding:4px 20px}
+.st-q{font-size:clamp(16px,min(2.3vw,3.6vh),34px);line-height:1.55;max-width:44ch;text-wrap:balance}
+.stage-view.turns .st-q{font-size:clamp(14px,min(1.8vw,2.8vh),28px);max-width:60ch;color:var(--on-suit-soft)}
+.st-seats{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(6px,1vw,12px)}
+.st-seats li{width:clamp(38px,min(4.4vw,6.4vh),66px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;border:2px solid var(--on-suit-soft);font-weight:700;font-size:clamp(15px,min(1.9vw,2.8vh),28px);font-variant-numeric:tabular-nums}
+.st-seats li.done{border-color:transparent;background:var(--on-suit-faint);color:var(--on-suit-soft)}
+.st-seats li.now{background:var(--on-suit);border-color:var(--on-suit);color:var(--ink-on-paper);transform:scale(1.12)}
+.st-join-card{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.6vh,16px);width:100%}
+.st-join-card .qr-tile{width:min(100%,58vh,520px);padding:clamp(8px,1.5vh,16px)}
+.st-join-card .qr-tile canvas{max-width:none}
+.st-join-link{width:min(100%,560px)}
+.st-controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;transition:opacity .4s ease}
+.st-controls .btn{min-height:44px;padding:8px 18px;font-size:15px}
+.stage-view.idle .st-controls:not(:focus-within):not(:hover){opacity:.07}
+.st-settings{position:relative}
+.st-settings > summary{list-style:none}
+.st-settings > summary::-webkit-details-marker{display:none}
+.st-settings-body{position:absolute;bottom:calc(100% + 10px);inset-inline-end:0;width:min(340px,86vw);background:var(--surface);color:var(--fg);border-radius:var(--r-md);padding:18px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--card-shadow);text-align:start;z-index:2}
+.st-settings-body .check{color:var(--fg)}
+.st-settings-body a{color:var(--suit-ink);font-weight:600}
+
 @media (prefers-reduced-motion: reduce){
   .card-inner{transition:none}
-  .card.shuffling,.card.landed,.question-block,.overlay.over .pt-digits{animation:none}
+  .card.shuffling,.card.landed,.question-block,.overlay.over .pt-digits,.stage-view.over .st-digits{animation:none}
   .bar span{transition:none}
 }
 </style>
@@ -447,7 +494,10 @@ details.panel[open] > summary::after{content:"−"}
         <p class="eyebrow">كلمة وراها حكاية</p>
         <h1 class="fac-title">شاشة الميسّر</h1>
       </div>
-      <button class="btn btn-secondary" id="to-player" type="button">شاشة المشاركين</button>
+      <div class="row">
+        <a class="btn btn-secondary" href="#stage">شاشة القاعة</a>
+        <button class="btn btn-secondary" id="to-player" type="button">شاشة المشاركين</button>
+      </div>
     </header>
 
     <section class="panel settings" aria-label="إعدادات الطاولة">
@@ -565,6 +615,83 @@ details.panel[open] > summary::after{content:"−"}
         </div>
       </div>
     </details>
+  </main>
+
+  <!-- ================= ROOM SCREEN (projector) ================= -->
+  <main id="view-stage" class="stage-view" hidden>
+    <header class="st-head">
+      <div class="st-round">
+        <span class="st-round-num" id="st-round-num"></span>
+        <span class="st-round-title" id="st-round-title"></span>
+      </div>
+      <span class="st-logo">كلمة وراها حكاية</span>
+    </header>
+
+    <section class="st-main">
+      <div class="st-block" id="st-intro">
+        <p class="st-big">افتحوا <span id="st-intro-round">الجولة 1</span> واكبسوا «اخلط»</p>
+        <p class="st-sub">كل واحد على الطاولة بتطلعله كلمة مختلفة. حضّروا جوابكم على السؤال:</p>
+      </div>
+      <div class="st-block" id="st-turn" hidden>
+        <p class="st-seat"><span class="st-seat-pre">هلّق دور</span>رقم <span id="st-seat">1</span></p>
+        <div class="st-digits digits" id="st-digits">2:00</div>
+        <div class="bar st-bar"><span id="st-bar"></span></div>
+        <p class="st-status" id="st-status" aria-live="polite"></p>
+      </div>
+      <div class="st-block" id="st-done" hidden>
+        <p class="st-big" id="st-done-text"></p>
+      </div>
+      <div class="st-block" id="st-join" hidden>
+        <div class="st-join-card">
+          <p class="st-big">امسحوا الرمز وادخلوا</p>
+          <div class="qr-tile">
+            <canvas id="st-qr" width="720" height="720" hidden></canvas>
+            <p class="qr-empty" id="st-qr-empty">الصق رابط الصفحة تحت وبيطلع الرمز هون.</p>
+          </div>
+          <p class="st-sub">اكتبوا اسمكم، رقم الطاولة، والرقم اللي أخدتوه على الطاولة.</p>
+          <div class="st-join-link"><input id="st-link" type="url" dir="ltr" inputmode="url" placeholder="https://…" autocomplete="off" aria-label="رابط الصفحة للرمز"></div>
+        </div>
+      </div>
+      <ol class="st-seats" id="st-seats" aria-label="ترتيب الأدوار"></ol>
+      <p class="st-q" id="st-q"></p>
+      <p class="st-sub" id="st-first-note"></p>
+    </section>
+
+    <footer class="st-controls" id="st-controls">
+      <button class="btn btn-on" id="st-prev-round" type="button">الجولة السابقة</button>
+      <button class="btn btn-on-strong" id="st-main" type="button">بلّش الأدوار</button>
+      <button class="btn btn-on" id="st-reset" type="button">من جديد</button>
+      <button class="btn btn-on" id="st-next" type="button">التالي</button>
+      <button class="btn btn-on" id="st-next-round" type="button">الجولة التالية</button>
+      <button class="btn btn-on" id="st-qr-btn" type="button">رمز الدخول</button>
+      <button class="btn btn-on" id="st-full" type="button">ملء الشاشة</button>
+      <details class="st-settings">
+        <summary class="btn btn-on">إعدادات</summary>
+        <div class="st-settings-body">
+          <div class="setting">
+            <span class="setting-label" id="lbl-scount">أكبر رقم على الطاولات</span>
+            <div class="stepper" role="group" aria-labelledby="lbl-scount">
+              <button type="button" data-sset="count" data-step="-1" aria-label="أقل">−</button>
+              <output id="st-count">8</output>
+              <button type="button" data-sset="count" data-step="1" aria-label="أكثر">+</button>
+            </div>
+          </div>
+          <div class="setting">
+            <span class="setting-label" id="lbl-sdur">وقت كل مشارك</span>
+            <div class="seg" id="st-dur" role="radiogroup" aria-labelledby="lbl-sdur">
+              <button type="button" role="radio" data-sec="60">1:00</button>
+              <button type="button" role="radio" data-sec="90">1:30</button>
+              <button type="button" role="radio" data-sec="120">2:00</button>
+              <button type="button" role="radio" data-sec="150">2:30</button>
+              <button type="button" role="radio" data-sec="180">3:00</button>
+            </div>
+          </div>
+          <label class="check"><input type="checkbox" id="st-auto"> انتقال تلقائي للي بعده (5 ثواني بعد ما يخلص الوقت)</label>
+          <p class="help">مفاتيح: مسافة = ابدأ/وقّف، ← = التالي، R = من جديد، F = ملء الشاشة.</p>
+          <a href="#facilitator">شاشة ميسّر الطاولة</a>
+        </div>
+      </details>
+    </footer>
   </main>
 
   <!-- ================= PARTICIPANT TIMER ================= -->
@@ -791,7 +918,7 @@ details.panel[open] > summary::after{content:"−"}
   // ------------------------------------------------------------------
   // Views
   // ------------------------------------------------------------------
-  var views = { join: $("#view-join"), play: $("#view-play"), end: $("#view-end"), fac: $("#view-fac") };
+  var views = { join: $("#view-join"), play: $("#view-play"), end: $("#view-end"), fac: $("#view-fac"), stage: $("#view-stage") };
   function showView(name) {
     Object.keys(views).forEach(function (k) { views[k].hidden = k !== name; });
     try { window.scrollTo(0, 0); } catch (e) {}
@@ -1258,35 +1385,52 @@ details.panel[open] > summary::after{content:"−"}
     });
     return qrLib;
   }
-  function qrValue() {
-    var base = (fac.link || "").trim().replace(/#.*$/, "");
-    if (!/^https?:\/\/\S+$/i.test(base)) return "";
-    return fac.perTable ? base + "#table-" + fac.table : base;
+  function baseLink() {
+    var b = (fac.link || "").trim().replace(/#.*$/, "");
+    return /^https?:\/\/\S+$/i.test(b) ? b : "";
   }
-  function drawQR() {
-    var v = qrValue(), canvas = $("#qr-canvas"), empty = $("#qr-empty");
-    $("#qr-out").value = v;
-    if (!v) {
+  function qrValue() {
+    var b = baseLink();
+    if (!b) return "";
+    return fac.perTable ? b + "#table-" + fac.table : b;
+  }
+  function drawQRTo(canvas, empty, value, size) {
+    if (!value) {
       canvas.hidden = true; empty.hidden = false;
-      empty.textContent = fac.link ? "الرابط لازم يبلّش بـ https://" : "الصق الرابط وبيطلع الرمز هون.";
+      empty.textContent = fac.link ? "الرابط لازم يبلّش بـ https://" : "الصق رابط الصفحة وبيطلع الرمز هون.";
       return;
     }
-    if ($("#qr-panel").open === false) return;
     loadQRLib().then(function () {
-      new window.QRious({ element: canvas, value: v, size: 544, padding: 24, level: "M", background: "#ffffff", foreground: "#111318" });
+      new window.QRious({ element: canvas, value: value, size: size, padding: Math.round(size / 22), level: "M", background: "#ffffff", foreground: "#111318" });
       canvas.hidden = false; empty.hidden = true;
     }).catch(function () {
       canvas.hidden = true; empty.hidden = false;
       empty.textContent = "ما قدرنا نحمّل مولّد الرمز. انسخ الرابط واعمل منه QR بأي موقع.";
     });
   }
+  function drawQR() {
+    var v = qrValue();
+    $("#qr-out").value = v;
+    if (v && $("#qr-panel").open === false) return;
+    drawQRTo($("#qr-canvas"), $("#qr-empty"), v, 544);
+  }
+  function setLink(v, from) {
+    fac.link = v.trim();
+    saveFac();
+    if (from !== "fac") $("#qr-link").value = fac.link;
+    if (from !== "stage") $("#st-link").value = fac.link;
+    drawQR();
+    if (stJoin) drawQRTo($("#st-qr"), $("#st-qr-empty"), baseLink(), 720);
+  }
   (function initQR() {
     var standalone = false;
     try { standalone = window.self === window.top && /^https?:$/.test(location.protocol); } catch (e) {}
     if (!fac.link && standalone) fac.link = location.origin + location.pathname;
     $("#qr-link").value = fac.link;
+    $("#st-link").value = fac.link;
     $("#qr-per-table").checked = fac.perTable;
-    $("#qr-link").addEventListener("input", function (e) { fac.link = e.target.value.trim(); saveFac(); drawQR(); });
+    $("#qr-link").addEventListener("input", function (e) { setLink(e.target.value, "fac"); });
+    $("#st-link").addEventListener("input", function (e) { setLink(e.target.value, "stage"); });
     $("#qr-per-table").addEventListener("change", function (e) { fac.perTable = e.target.checked; saveFac(); drawQR(); });
     $("#qr-panel").addEventListener("toggle", drawQR);
     $("#qr-copy").addEventListener("click", function () {
@@ -1302,13 +1446,224 @@ details.panel[open] > summary::after{content:"−"}
   })();
 
   // ------------------------------------------------------------------
-  // Routing: "#facilitator" opens the facilitator screen,
+  // Room screen (#stage): one facilitator on a projector runs every
+  // table in lockstep. The screen calls a seat number, and whoever
+  // holds that number at each table speaks.
+  // ------------------------------------------------------------------
+  var S_KEY = "kwh.stage.v1";
+  var stJoin = false;
+  var stg = (function () {
+    var d = { count: 8, duration: 120, round: 0, phase: "intro", done: [], current: 0, auto: true };
+    var s = store.get(S_KEY, {}) || {};
+    Object.keys(d).forEach(function (k) { if (s[k] !== undefined && typeof s[k] === typeof d[k]) d[k] = s[k]; });
+    if (!Array.isArray(d.done)) d.done = [];
+    d.count = clamp(d.count | 0, 2, MAX_SEATS);
+    d.round = clamp(d.round | 0, 0, LAST);
+    if ([60, 90, 120, 150, 180].indexOf(d.duration) < 0) d.duration = 120;
+    if (["intro", "turns", "done"].indexOf(d.phase) < 0) d.phase = "intro";
+    return d;
+  })();
+  function saveStage() { store.set(S_KEY, stg); }
+  function stOrder() {
+    var n = stg.count, start = stg.round % n, out = [];
+    for (var i = 0; i < n; i++) out.push(((start + i) % n) + 1);
+    return out;
+  }
+  function stNext() {
+    var ord = stOrder(), n = ord.length, i = ord.indexOf(stg.current);
+    for (var k = 1; k <= n; k++) {
+      var seat = ord[((i < 0 ? -1 : i) + k + n) % n];
+      if (seat !== stg.current && stg.done.indexOf(seat) < 0) return seat;
+    }
+    return 0;
+  }
+  function stNormalize() {
+    stg.done = stg.done.filter(function (x) { return x >= 1 && x <= stg.count; });
+    if (stg.phase === "turns" && !(stg.current >= 1 && stg.current <= stg.count)) {
+      stg.current = stNext();
+      if (!stg.current) stg.phase = "done";
+    }
+  }
+
+  var graceIv = null, graceLeft = 0;
+  function cancelGrace() { if (graceIv) { clearInterval(graceIv); graceIv = null; } graceLeft = 0; }
+  function stStatus(rem) {
+    var txt = "";
+    if (rem <= 0) {
+      txt = "خلص الوقت";
+      if (graceLeft > 0) {
+        var nx = stNext();
+        txt += nx ? " · رقم " + nx + " بعد " + graceLeft : " · الجولة بتخلص بعد " + graceLeft;
+      }
+    } else if (rem <= 15000 && stTimer.running) {
+      txt = "آخر ثواني";
+    }
+    $("#st-status").textContent = txt;
+  }
+  var stTimer = makeTimer(function (rem, t) {
+    $("#st-digits").textContent = fmtClock(rem);
+    $("#st-bar").style.width = (clamp(rem / (t.duration * 1000), 0, 1) * 100) + "%";
+    $("#view-stage").classList.toggle("over", rem <= 0);
+    stStatus(rem);
+    if (stg.phase === "turns") $("#st-main").textContent = t.running ? "وقّف" : (t.elapsed() > 0 ? "كمّل" : "ابدأ");
+  }, function () {
+    chime(); vibrate([220, 120, 220]);
+    if (stg.auto) startGrace();
+  });
+  function startGrace() {
+    cancelGrace();
+    graceLeft = 5;
+    stStatus(-1);
+    graceIv = setInterval(function () {
+      graceLeft -= 1;
+      if (graceLeft <= 0) { cancelGrace(); stAdvance(true); } else stStatus(-1);
+    }, 1000);
+  }
+  function stAdvance(autoStart) {
+    cancelGrace();
+    if (stg.current && stg.done.indexOf(stg.current) < 0) stg.done.push(stg.current);
+    var nx = stNext();
+    stTimer.reset();
+    if (!nx) { stg.phase = "done"; stg.current = 0; }
+    else { stg.current = nx; if (autoStart) { stTimer.start(); keepAwake(); } }
+    saveStage(); renderStage();
+  }
+  function stBegin() {
+    cancelGrace();
+    stg.phase = "turns"; stg.done = []; stg.current = stOrder()[0];
+    stTimer.reset(); stTimer.start(); keepAwake();
+    saveStage(); renderStage();
+  }
+  function stGoRound(i) {
+    cancelGrace();
+    stg.round = clamp(i, 0, LAST); stg.phase = "intro"; stg.done = []; stg.current = 0;
+    stTimer.reset(); saveStage(); renderStage();
+  }
+  function stMain() {
+    unlockAudio();
+    if (stJoin) { stJoin = false; renderStage(); return; }
+    if (stg.phase === "intro") { stBegin(); return; }
+    if (stg.phase === "turns") {
+      cancelGrace();
+      if (stTimer.running) stTimer.pause(); else { stTimer.start(); keepAwake(); }
+      return;
+    }
+    if (stg.phase === "done" && stg.round < LAST) stGoRound(stg.round + 1);
+  }
+
+  function renderStage() {
+    stNormalize();
+    var g = GROUPS[stg.round], ord = stOrder(), ph = stg.phase;
+    setSuit(stg.round);
+    views.stage.classList.toggle("turns", ph === "turns" && !stJoin);
+    if (stTimer.duration !== stg.duration) stTimer.setDuration(stg.duration);
+    $("#st-round-num").textContent = "الجولة " + (stg.round + 1) + " من " + GROUPS.length;
+    $("#st-round-title").textContent = g.title;
+    $("#st-intro-round").textContent = "الجولة " + (stg.round + 1);
+
+    $("#st-join").hidden = !stJoin;
+    $("#st-intro").hidden = stJoin || ph !== "intro";
+    $("#st-turn").hidden = stJoin || ph !== "turns";
+    $("#st-done").hidden = stJoin || ph !== "done";
+    $("#st-q").hidden = stJoin || ph === "done";
+    $("#st-q").textContent = g.question;
+    $("#st-first-note").hidden = stJoin || ph !== "intro";
+    $("#st-first-note").textContent = "بنبلّش من رقم " + ord[0] + " على كل الطاولات، وبعدين بالترتيب.";
+    $("#st-done-text").textContent = stg.round === LAST ? "خلصنا! شكرًا على الحكايات." : "الكل حكى. خلصت الجولة " + (stg.round + 1) + ".";
+    if (ph === "turns") $("#st-seat").textContent = stg.current;
+
+    var seats = $("#st-seats");
+    seats.textContent = "";
+    seats.hidden = stJoin || ph === "intro";
+    ord.forEach(function (seat) {
+      var li = el("li", null, String(seat));
+      if (seat === stg.current && ph === "turns") li.className = "now";
+      else if (ph === "done" || stg.done.indexOf(seat) >= 0) li.className = "done";
+      seats.appendChild(li);
+    });
+
+    var main = $("#st-main");
+    main.hidden = false;
+    if (stJoin) main.textContent = "رجوع";
+    else if (ph === "intro") main.textContent = "بلّش الأدوار";
+    else if (ph === "turns") main.textContent = stTimer.running ? "وقّف" : (stTimer.elapsed() > 0 ? "كمّل" : "ابدأ");
+    else if (stg.round < LAST) main.textContent = "الجولة التالية";
+    else main.hidden = true;
+    $("#st-reset").hidden = stJoin || ph !== "turns";
+    $("#st-next").hidden = stJoin || ph !== "turns";
+    $("#st-prev-round").disabled = stg.round === 0;
+    $("#st-next-round").disabled = stg.round === LAST;
+    $("#st-qr-btn").textContent = stJoin ? "سكّر الرمز" : "رمز الدخول";
+
+    $("#st-count").textContent = stg.count;
+    document.querySelectorAll("#st-dur button").forEach(function (b) {
+      b.setAttribute("aria-checked", String(Number(b.dataset.sec) === stg.duration));
+    });
+    $("#st-auto").checked = stg.auto;
+    if (stJoin) drawQRTo($("#st-qr"), $("#st-qr-empty"), baseLink(), 720);
+  }
+
+  function showStage() { showView("stage"); renderStage(); stWake(); }
+
+  $("#st-main").addEventListener("click", stMain);
+  $("#st-next").addEventListener("click", function () { unlockAudio(); stAdvance(stg.auto); });
+  $("#st-reset").addEventListener("click", function () { cancelGrace(); stTimer.reset(); });
+  $("#st-prev-round").addEventListener("click", function () { stJoin = false; stGoRound(stg.round - 1); });
+  $("#st-next-round").addEventListener("click", function () { stJoin = false; stGoRound(stg.round + 1); });
+  $("#st-qr-btn").addEventListener("click", function () { stJoin = !stJoin; renderStage(); });
+  document.querySelectorAll("[data-sset]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      stg.count = clamp(stg.count + Number(b.dataset.step), 2, MAX_SEATS);
+      saveStage(); renderStage();
+    });
+  });
+  document.querySelectorAll("#st-dur button").forEach(function (b) {
+    b.addEventListener("click", function () { stg.duration = Number(b.dataset.sec); saveStage(); renderStage(); });
+  });
+  $("#st-auto").addEventListener("change", function (e) { stg.auto = e.target.checked; if (!stg.auto) cancelGrace(); saveStage(); renderStage(); });
+
+  function toggleFull() {
+    try {
+      if (document.fullscreenElement) { document.exitFullscreen().catch(function () {}); }
+      else if (document.documentElement.requestFullscreen) { document.documentElement.requestFullscreen().catch(function () {}); }
+    } catch (e) {}
+  }
+  $("#st-full").hidden = !document.fullscreenEnabled;
+  $("#st-full").addEventListener("click", toggleFull);
+
+  var idleT = null;
+  function stWake() {
+    var v = $("#view-stage");
+    v.classList.remove("idle");
+    clearTimeout(idleT);
+    idleT = setTimeout(function () { v.classList.add("idle"); }, 4000);
+  }
+  ["mousemove", "touchstart", "keydown", "click"].forEach(function (evName) {
+    document.addEventListener(evName, function () { if (!views.stage.hidden) stWake(); }, { passive: true });
+  });
+  document.addEventListener("keydown", function (e) {
+    if (views.stage.hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+    var tag = (e.target && e.target.tagName) || "";
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+    var isSpace = e.key === " " || e.code === "Space";
+    if ((tag === "BUTTON" || tag === "SUMMARY" || tag === "A") && (isSpace || e.key === "Enter")) return;
+    if (isSpace) { e.preventDefault(); stMain(); }
+    else if (e.key === "ArrowLeft" || e.key === "n" || e.key === "N") { if (stg.phase === "turns" && !stJoin) { unlockAudio(); stAdvance(stg.auto); } }
+    else if (e.key === "r" || e.key === "R") { if (stg.phase === "turns") { cancelGrace(); stTimer.reset(); } }
+    else if (e.key === "f" || e.key === "F") { toggleFull(); }
+  });
+
+  // ------------------------------------------------------------------
+  // Routing: "#stage" opens the room screen for a projector,
+  // "#facilitator" opens the table facilitator screen,
   // "#table-3" pre-fills table 3 for participants.
   // ------------------------------------------------------------------
   function route() {
     var h = "";
     try { h = decodeURIComponent((location.hash || "").replace(/^#/, "")); } catch (e) {}
     if (!ptEl.hidden) { pTimer.reset(); ptEl.hidden = true; }
+    if (h !== "stage" && !views.stage.hidden) { cancelGrace(); stTimer.pause(); }
+    if (h === "stage") { showStage(); return; }
     if (h === "facilitator") { showFac(); return; }
     var m = /^table-(\d{1,2})$/.exec(h);
     hashTable = m ? clamp(Number(m[1]), 1, 99) : null;
