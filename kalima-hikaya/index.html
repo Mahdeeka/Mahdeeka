@@ -385,10 +385,10 @@ details.panel[open] > summary::after{content:"−"}
         <label for="in-table">رقم الطاولة</label>
         <div class="stepper">
           <button type="button" id="tbl-minus" aria-label="رقم طاولة أقل">−</button>
-          <input id="in-table" type="number" inputmode="numeric" min="1" max="99" value="1">
+          <input id="in-table" type="number" inputmode="numeric" min="1" max="99" placeholder="—" required>
           <button type="button" id="tbl-plus" aria-label="رقم طاولة أكبر">+</button>
         </div>
-        <p class="help" id="table-note" hidden>رقم الطاولة إجا من رمز الـQR.</p>
+        <p class="help" id="table-note">الرقم مكتوب على كرت الطاولة.</p>
       </div>
       <fieldset class="field">
         <legend>رقمك على الطاولة</legend>
@@ -404,14 +404,14 @@ details.panel[open] > summary::after{content:"−"}
           <input type="radio" name="seat" id="seat-9" value="9"><label for="seat-9">9</label>
           <input type="radio" name="seat" id="seat-10" value="10"><label for="seat-10">10</label>
         </div>
-        <p class="help">الميسّر بوزّع الأرقام. كل رقم على نفس الطاولة بتطلعله كلمة مختلفة.</p>
+        <p class="help">رقمك حسب مكانك: اللي قدّام كرت الطاولة رقم 1، وبعده مع عقارب الساعة. كل رقم على نفس الطاولة بتطلعله كلمة مختلفة.</p>
       </fieldset>
       <p class="form-error" id="join-error" role="alert" hidden></p>
       <button class="btn btn-primary btn-big" type="submit">يلّا نبلّش</button>
     </form>
 
     <ol class="steps">
-      <li>الميسّر بشرح الفعالية وبعطي كل واحد رقم.</li>
+      <li>الميسّر بشرح الفعالية، وكل طاولة بتعدّ من 1 لـ8.</li>
       <li>لما تبلّش الجولة، اكبس «اخلط» وبتطلعلك كلمة وسؤال.</li>
       <li>كل واحد بدوره بحكي عن كلمته، والمؤقّت بضبط الوقت.</li>
     </ol>
@@ -605,14 +605,13 @@ details.panel[open] > summary::after{content:"−"}
     </details>
 
     <details class="panel" id="qr-panel">
-      <summary>رمز QR للمشاركين</summary>
+      <summary>رمز QR للمشاركين (واحد لكل الطاولات)</summary>
       <div class="details-body">
         <div class="qr-grid">
           <div class="qr-form">
             <label for="qr-link"><strong>رابط الصفحة</strong></label>
             <input id="qr-link" type="url" dir="ltr" inputmode="url" placeholder="https://claude.ai/…" autocomplete="off">
             <p class="help">انسخ الرابط العام لهالصفحة (من زر المشاركة) والصقه هون.</p>
-            <label class="check"><input type="checkbox" id="qr-per-table"> رابط خاص بهالطاولة (رقم الطاولة بتعبّى لحاله)</label>
             <input id="qr-out" type="text" dir="ltr" class="qr-url" readonly aria-label="الرابط اللي بالرمز">
             <div class="row"><button class="btn btn-secondary" id="qr-copy" type="button">نسخ الرابط</button></div>
           </div>
@@ -656,7 +655,7 @@ details.panel[open] > summary::after{content:"−"}
             <canvas id="st-qr" width="720" height="720" hidden></canvas>
             <p class="qr-empty" id="st-qr-empty">الصق رابط الصفحة تحت وبيطلع الرمز هون.</p>
           </div>
-          <p class="st-sub">اكتبوا اسمكم، رقم الطاولة، والرقم اللي أخدتوه على الطاولة.</p>
+          <p class="st-sub">اكتبوا اسمكم ورقم طاولتكم. رقمكم حسب مكانكم: اللي قدّام كرت الطاولة رقم 1، وبعده مع عقارب الساعة.</p>
           <div class="st-join-link"><input id="st-link" type="url" dir="ltr" inputmode="url" placeholder="https://…" autocomplete="off" aria-label="رابط الصفحة للرمز"></div>
         </div>
       </div>
@@ -963,8 +962,8 @@ details.panel[open] > summary::after{content:"−"}
   function showJoin() {
     setSuit(0);
     inName.value = player ? player.name : "";
-    inTable.value = hashTable || (player && player.table) || 1;
-    $("#table-note").hidden = !hashTable;
+    inTable.value = hashTable || (player && player.table) || "";
+    $("#table-note").textContent = hashTable ? "رقم الطاولة إجا من الرابط." : "الرقم مكتوب على كرت الطاولة.";
     var s = player ? player.seat : 0;
     seatGrid.querySelectorAll("input").forEach(function (i) { i.checked = Number(i.value) === s; });
     $("#join-error").hidden = true;
@@ -984,6 +983,7 @@ details.panel[open] > summary::after{content:"−"}
     var table = parseInt(inTable.value, 10);
     var seatEl = seatGrid.querySelector("input:checked");
     if (!name) return joinError("اكتب اسمك عشان نبلّش.", inName);
+    if (!inTable.value.trim()) return joinError("اكتب رقم الطاولة. الرقم مكتوب على كرت الطاولة.", inTable);
     if (!(table >= 1 && table <= 99)) return joinError("رقم الطاولة لازم يكون بين 1 و-99.", inTable);
     if (!seatEl) return joinError("اختار رقمك على الطاولة. الميسّر بعطيك إياه.");
     var seat = Number(seatEl.value);
@@ -1239,7 +1239,7 @@ details.panel[open] > summary::after{content:"−"}
     document.querySelectorAll("#f-dur button").forEach(function (b) {
       b.setAttribute("aria-checked", String(Number(b.dataset.sec) === fac.duration));
     });
-    $("#f-estimate").textContent = "وزّع أرقام من 1 لـ" + fac.count + " على المشاركين. كل جولة بتاخد تقريبًا " +
+    $("#f-estimate").textContent = "كل طاولة بتعدّ من 1 لـ" + fac.count + " مع عقارب الساعة، بادئين من اللي قدّام كرت الطاولة. كل جولة بتاخد تقريبًا " +
       Math.round(fac.count * fac.duration / 60) + " دقيقة (" + fac.count + " × " + fmtDur(fac.duration) + ").";
     if (facTimer.duration !== fac.duration) facTimer.setDuration(fac.duration);
 
@@ -1397,11 +1397,7 @@ details.panel[open] > summary::after{content:"−"}
     var b = (fac.link || "").trim().replace(/#.*$/, "");
     return /^https?:\/\/\S+$/i.test(b) ? b : "";
   }
-  function qrValue() {
-    var b = baseLink();
-    if (!b) return "";
-    return fac.perTable ? b + "#table-" + fac.table : b;
-  }
+  function qrValue() { return baseLink(); }
   function drawQRTo(canvas, empty, value, size) {
     if (!value) {
       canvas.hidden = true; empty.hidden = false;
@@ -1436,10 +1432,8 @@ details.panel[open] > summary::after{content:"−"}
     if (!fac.link && standalone) fac.link = location.origin + location.pathname;
     $("#qr-link").value = fac.link;
     $("#st-link").value = fac.link;
-    $("#qr-per-table").checked = fac.perTable;
     $("#qr-link").addEventListener("input", function (e) { setLink(e.target.value, "fac"); });
     $("#st-link").addEventListener("input", function (e) { setLink(e.target.value, "stage"); });
-    $("#qr-per-table").addEventListener("change", function (e) { fac.perTable = e.target.checked; saveFac(); drawQR(); });
     $("#qr-panel").addEventListener("toggle", drawQR);
     $("#qr-copy").addEventListener("click", function () {
       var out = $("#qr-out"), btn = $("#qr-copy");
