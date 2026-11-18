@@ -381,15 +381,6 @@ details.panel[open] > summary::after{content:"−"}
         <label for="in-name">شو اسمك؟</label>
         <input id="in-name" type="text" autocomplete="given-name" maxlength="30" placeholder="الاسم الأول بكفي" required>
       </div>
-      <div class="field">
-        <label for="in-table">رقم الطاولة</label>
-        <div class="stepper">
-          <button type="button" id="tbl-minus" aria-label="رقم طاولة أقل">−</button>
-          <input id="in-table" type="number" inputmode="numeric" min="1" max="99" placeholder="—" required>
-          <button type="button" id="tbl-plus" aria-label="رقم طاولة أكبر">+</button>
-        </div>
-        <p class="help" id="table-note">الرقم مكتوب على كرت الطاولة.</p>
-      </div>
       <fieldset class="field">
         <legend>رقمك على الطاولة</legend>
         <div class="seat-grid" id="seat-grid">
@@ -509,14 +500,6 @@ details.panel[open] > summary::after{content:"−"}
     </header>
 
     <section class="panel settings" aria-label="إعدادات الطاولة">
-      <div class="setting">
-        <span class="setting-label" id="lbl-table">الطاولة</span>
-        <div class="stepper" role="group" aria-labelledby="lbl-table">
-          <button type="button" data-set="table" data-step="-1" aria-label="طاولة أقل">−</button>
-          <output id="f-table">1</output>
-          <button type="button" data-set="table" data-step="1" aria-label="طاولة أكبر">+</button>
-        </div>
-      </div>
       <div class="setting">
         <span class="setting-label" id="lbl-count">عدد المشاركين</span>
         <div class="stepper" role="group" aria-labelledby="lbl-count">
@@ -655,7 +638,7 @@ details.panel[open] > summary::after{content:"−"}
             <canvas id="st-qr" width="720" height="720" hidden></canvas>
             <p class="qr-empty" id="st-qr-empty">الصق رابط الصفحة تحت وبيطلع الرمز هون.</p>
           </div>
-          <p class="st-sub">اكتبوا اسمكم ورقم طاولتكم. رقمكم حسب مكانكم: اللي قدّام كرت الطاولة رقم 1، وبعده مع عقارب الساعة.</p>
+          <p class="st-sub">اكتبوا اسمكم واختاروا رقمكم حسب مكانكم: اللي قدّام كرت الطاولة رقم 1، وبعده مع عقارب الساعة.</p>
           <div class="st-join-link"><input id="st-link" type="url" dir="ltr" inputmode="url" placeholder="https://…" autocomplete="off" aria-label="رابط الصفحة للرمز"></div>
         </div>
       </div>
@@ -883,7 +866,7 @@ details.panel[open] > summary::after{content:"−"}
     };
   }
   function dealOrder(table, round) {
-    var r = rng(hashStr("kwh|" + dayKey() + "|t" + table + "|r" + round));
+    var r = rng(hashStr("kwh|" + dayKey() + "|r" + round));
     var idx = GROUPS[round].words.map(function (_, i) { return i; });
     for (var i = idx.length - 1; i > 0; i--) {
       var j = Math.floor(r() * (i + 1));
@@ -937,7 +920,6 @@ details.panel[open] > summary::after{content:"−"}
   // Participant
   // ------------------------------------------------------------------
   var P_KEY = "kwh.player.v1";
-  var hashTable = null;
   var player = sanitizePlayer(store.get(P_KEY, null));
 
   function freshProgress() {
@@ -946,7 +928,8 @@ details.panel[open] > summary::after{content:"−"}
   function sanitizePlayer(p) {
     if (!p || typeof p !== "object") return null;
     if (typeof p.name !== "string" || !p.name.trim()) return null;
-    if (!(p.table >= 1 && p.table <= 99) || !(p.seat >= 1 && p.seat <= MAX_SEATS)) return null;
+    if (!(p.seat >= 1 && p.seat <= MAX_SEATS)) return null;
+    p.table = 1;
     if (p.day !== dayKey() || !Array.isArray(p.revealed) || p.revealed.length !== GROUPS.length) {
       var f = freshProgress();
       p.day = f.day; p.round = f.round; p.maxRound = f.maxRound; p.revealed = f.revealed;
@@ -959,13 +942,11 @@ details.panel[open] > summary::after{content:"−"}
 
   // ---- join ----
   var joinForm = $("#join-form");
-  var inName = $("#in-name"), inTable = $("#in-table"), seatGrid = $("#seat-grid");
+  var inName = $("#in-name"), seatGrid = $("#seat-grid");
 
   function showJoin() {
     setSuit(0);
     inName.value = player ? player.name : "";
-    inTable.value = hashTable || (player && player.table) || "";
-    $("#table-note").textContent = hashTable ? "رقم الطاولة إجا من الرابط." : "الرقم مكتوب على كرت الطاولة.";
     var s = player ? player.seat : 0;
     seatGrid.querySelectorAll("input").forEach(function (i) { i.checked = Number(i.value) === s; });
     $("#join-error").hidden = true;
@@ -976,23 +957,19 @@ details.panel[open] > summary::after{content:"−"}
     e.textContent = msg; e.hidden = false;
     if (focusEl) focusEl.focus();
   }
-  $("#tbl-minus").addEventListener("click", function () { inTable.value = clamp((parseInt(inTable.value, 10) || 1) - 1, 1, 99); });
-  $("#tbl-plus").addEventListener("click", function () { inTable.value = clamp((parseInt(inTable.value, 10) || 0) + 1, 1, 99); });
 
   joinForm.addEventListener("submit", function (ev) {
     ev.preventDefault();
     var name = inName.value.trim().replace(/\s+/g, " ").slice(0, 30);
-    var table = parseInt(inTable.value, 10);
     var seatEl = seatGrid.querySelector("input:checked");
     if (!name) return joinError("اكتب اسمك عشان نبلّش.", inName);
-    if (!inTable.value.trim()) return joinError("اكتب رقم الطاولة. الرقم مكتوب على كرت الطاولة.", inTable);
-    if (!(table >= 1 && table <= 99)) return joinError("رقم الطاولة لازم يكون بين 1 و-99.", inTable);
     if (!seatEl) return joinError("اختار رقمك على الطاولة. الميسّر بعطيك إياه.");
     var seat = Number(seatEl.value);
-    var changed = !player || player.table !== table || player.seat !== seat;
+    var changed = !player || player.seat !== seat;
     var base = player || {};
-    base.name = name; base.table = table; base.seat = seat;
-    if (changed) { var f = freshProgress(); base.day = f.day; base.round = 0; base.maxRound = 0; base.revealed = f.revealed; }
+    base.name = name; base.table = 1; base.seat = seat;
+    if (!player) { var f = freshProgress(); base.day = f.day; base.round = 0; base.maxRound = 0; base.revealed = f.revealed; }
+    else if (changed) { base.revealed = freshProgress().revealed; } // new seat = new words; keep the round
     player = sanitizePlayer(base);
     savePlayer();
     showPlay();
@@ -1009,7 +986,7 @@ details.panel[open] > summary::after{content:"−"}
     setSuit(r);
     $("#p-avatar").textContent = player.name.charAt(0);
     $("#p-name").textContent = player.name;
-    $("#p-meta").textContent = "طاولة " + player.table + " · رقم " + player.seat;
+    $("#p-meta").textContent = "رقم " + player.seat;
 
     var pips = $("#pips");
     pips.textContent = "";
@@ -1115,7 +1092,7 @@ details.panel[open] > summary::after{content:"−"}
   // ---- end ----
   function showEnd() {
     setSuit(LAST);
-    $("#end-who").textContent = player.name + " · طاولة " + player.table;
+    $("#end-who").textContent = player.name;
     var list = $("#end-list");
     list.textContent = "";
     GROUPS.forEach(function (g, i) {
@@ -1180,7 +1157,7 @@ details.panel[open] > summary::after{content:"−"}
     var d = { table: 1, count: 8, duration: 120, round: 0, names: {}, progress: {}, link: "", perTable: false, revealAll: false, day: dayKey() };
     var s = store.get(F_KEY, {}) || {};
     Object.keys(d).forEach(function (k) { if (s[k] !== undefined && typeof s[k] === typeof d[k]) d[k] = s[k]; });
-    d.table = clamp(d.table | 0, 1, 99);
+    d.table = 1;
     d.count = clamp(d.count | 0, 2, MAX_SEATS);
     d.round = clamp(d.round | 0, 0, LAST);
     if ([60, 90, 120, 150, 180].indexOf(d.duration) < 0) d.duration = 120;
@@ -1236,7 +1213,6 @@ details.panel[open] > summary::after{content:"−"}
     var g = GROUPS[fac.round], p = prog(), ord = order();
     setSuit(fac.round);
 
-    $("#f-table").textContent = fac.table;
     $("#f-count").textContent = fac.count;
     document.querySelectorAll("#f-dur button").forEach(function (b) {
       b.setAttribute("aria-checked", String(Number(b.dataset.sec) === fac.duration));
@@ -1348,8 +1324,7 @@ details.panel[open] > summary::after{content:"−"}
   document.querySelectorAll("[data-set]").forEach(function (b) {
     b.addEventListener("click", function () {
       var step = Number(b.dataset.step);
-      if (b.dataset.set === "table") fac.table = clamp(fac.table + step, 1, 99);
-      else fac.count = clamp(fac.count + step, 2, MAX_SEATS);
+      fac.count = clamp(fac.count + step, 2, MAX_SEATS);
       saveFac(); facTimer.reset(); renderFac(); drawQR();
     });
   });
@@ -1457,7 +1432,7 @@ details.panel[open] > summary::after{content:"−"}
   var S_KEY = "kwh.stage.v1";
   var stJoin = false;
   var stg = (function () {
-    var d = { count: 8, duration: 120, round: 0, phase: "intro", done: [], current: 0, auto: true };
+    var d = { count: 8, duration: 120, round: 0, phase: "intro", done: [], current: 0, auto: true, day: dayKey() };
     var s = store.get(S_KEY, {}) || {};
     Object.keys(d).forEach(function (k) { if (s[k] !== undefined && typeof s[k] === typeof d[k]) d[k] = s[k]; });
     if (!Array.isArray(d.done)) d.done = [];
@@ -1465,6 +1440,7 @@ details.panel[open] > summary::after{content:"−"}
     d.round = clamp(d.round | 0, 0, LAST);
     if ([60, 90, 120, 150, 180].indexOf(d.duration) < 0) d.duration = 120;
     if (["intro", "turns", "done"].indexOf(d.phase) < 0) d.phase = "intro";
+    if (d.day !== dayKey()) { d.day = dayKey(); d.round = 0; d.phase = "intro"; d.done = []; d.current = 0; }
     return d;
   })();
   function saveStage() { store.set(S_KEY, stg); }
@@ -1669,9 +1645,6 @@ details.panel[open] > summary::after{content:"−"}
     if (h !== "stage" && !views.stage.hidden) { cancelGrace(); stTimer.pause(); }
     if (h === "stage") { showStage(); return; }
     if (h === "facilitator") { showFac(); return; }
-    var m = /^table-(\d{1,2})$/.exec(h);
-    hashTable = m ? clamp(Number(m[1]), 1, 99) : null;
-    if (hashTable && player && player.table !== hashTable) { showJoin(); return; }
     if (!player) { showJoin(); return; }
     showPlay();
   }
