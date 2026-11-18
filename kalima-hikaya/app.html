@@ -1,0 +1,1322 @@
+<title>كلمة وراها حكاية</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&family=Lalezar&family=Readex+Pro:wght@300..700&display=swap">
+<style>
+/* Layout: phone-first "card table". One column: round header, one word card, its question.
+   The facilitator screen opens into two columns (turn timer | the table) from 900px.
+   Each of the 5 rounds is a card suit with its own color, and the page takes on the current suit. */
+:root{
+  --bg:#ECEEF3;
+  --surface:#FFFFFF;
+  --surface-2:#F4F5F9;
+  --fg:#171A24;
+  --muted:#596074;
+  --line:#D5D9E3;
+  --s1:#2D4AA3; --s2:#2A7A5C; --s3:#A2650E; --s4:#AD3E29; --s5:#723788;
+  --s1-ink:#2D4AA3; --s2-ink:#24694F; --s3-ink:#8A560B; --s4-ink:#A13A26; --s5-ink:#6A3380;
+  --suit:var(--s1);
+  --suit-ink:var(--s1-ink);
+  --on-suit:#FFFFFF;
+  --on-suit-soft:rgba(255,255,255,.80);
+  --on-suit-faint:rgba(255,255,255,.17);
+  --paper:#FFFFFF;
+  --ink-on-paper:#14161E;
+  --muted-on-paper:#596074;
+  --warn:#9E6A06;
+  --danger:#BF3426;
+  --focus:#2D4AA3;
+  --shadow:0 1px 2px rgba(23,26,36,.06),0 10px 28px rgba(23,26,36,.09);
+  --card-shadow:0 2px 4px rgba(23,26,36,.10),0 24px 44px -14px rgba(23,26,36,.38);
+  --font-ui:"Readex Pro","Noto Sans Arabic","Segoe UI",Tahoma,system-ui,sans-serif;
+  --font-word:"Lalezar","Readex Pro","Noto Sans Arabic",Tahoma,sans-serif;
+  --font-logo:"Aref Ruqaa","Noto Naskh Arabic","Traditional Arabic",serif;
+  --r-lg:24px; --r-md:18px; --r-sm:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1117; --surface:#181B24; --surface-2:#20242F; --fg:#ECEEF4; --muted:#9AA1B5; --line:#2C313E;
+    --s1:#4864C4; --s2:#2E7E5F; --s3:#A3691A; --s4:#C2523C; --s5:#8B52A3;
+    --s1-ink:#93A9F2; --s2-ink:#74C9A5; --s3-ink:#E6B465; --s4-ink:#F09382; --s5-ink:#CB98E0;
+    --warn:#E7AE45; --danger:#F06A58; --focus:#93A9F2;
+    --shadow:0 1px 2px rgba(0,0,0,.45),0 10px 28px rgba(0,0,0,.35);
+    --card-shadow:0 2px 4px rgba(0,0,0,.45),0 24px 44px -14px rgba(0,0,0,.75);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1117; --surface:#181B24; --surface-2:#20242F; --fg:#ECEEF4; --muted:#9AA1B5; --line:#2C313E;
+  --s1:#4864C4; --s2:#2E7E5F; --s3:#A3691A; --s4:#C2523C; --s5:#8B52A3;
+  --s1-ink:#93A9F2; --s2-ink:#74C9A5; --s3-ink:#E6B465; --s4-ink:#F09382; --s5-ink:#CB98E0;
+  --warn:#E7AE45; --danger:#F06A58; --focus:#93A9F2;
+  --shadow:0 1px 2px rgba(0,0,0,.45),0 10px 28px rgba(0,0,0,.35);
+  --card-shadow:0 2px 4px rgba(0,0,0,.45),0 24px 44px -14px rgba(0,0,0,.75);
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg)}
+body{color:var(--fg);font-family:var(--font-ui);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+#app{min-height:100%}
+h1,h2,h3,p{margin:0}
+h1,h2,h3{text-wrap:balance;line-height:1.3}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+.view{max-width:560px;margin-inline:auto;padding-block:20px 44px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+.view.wide{max-width:1180px}
+.view > *{min-width:0}
+
+/* ---------- shared pieces ---------- */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:20px}
+.eyebrow{font-size:13px;font-weight:600;color:var(--suit-ink);letter-spacing:.01em}
+.help{font-size:14px;color:var(--muted);line-height:1.6}
+.center{text-align:center}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.row > .btn{flex:1 1 160px}
+
+.btn{appearance:none;border:1.5px solid transparent;border-radius:999px;padding:11px 22px;font-weight:600;font-size:16px;line-height:1.3;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:48px;text-decoration:none;transition:transform .12s ease,background-color .2s ease,border-color .2s ease,opacity .2s ease}
+.btn:active{transform:scale(.97)}
+.btn svg{flex:none}
+.btn-primary{background:var(--suit);color:var(--on-suit)}
+.btn-secondary{background:var(--surface);border-color:var(--line);color:var(--fg)}
+.btn-big{min-height:60px;font-size:18px;padding-inline:28px;width:100%}
+.btn:disabled{opacity:.6;cursor:default;transform:none}
+.btn-text{appearance:none;border:0;background:none;padding:8px 4px;color:var(--suit-ink);font-weight:600;font-size:15px;cursor:pointer;text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1.5px}
+.icon{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+input[type="text"],input[type="url"],input[type="number"]{font:inherit;color:var(--fg);background:var(--surface-2);border:1.5px solid var(--line);border-radius:var(--r-sm);padding:11px 14px;min-height:48px;width:100%;transition:border-color .15s ease}
+input[type="text"]:focus,input[type="url"]:focus,input[type="number"]:focus{outline:none;border-color:var(--suit-ink)}
+input::placeholder{color:var(--muted);opacity:.8}
+input[type="number"]{-moz-appearance:textfield;appearance:textfield}
+input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+.stepper{display:inline-flex;align-items:center;border:1.5px solid var(--line);border-radius:var(--r-sm);background:var(--surface-2);overflow:hidden;width:max-content}
+.stepper button{appearance:none;border:0;background:none;width:48px;height:46px;font-size:22px;line-height:1;cursor:pointer;color:var(--fg)}
+.stepper button:active{background:var(--line)}
+.stepper input,.stepper output{width:64px;min-height:46px;border:0;border-radius:0;background:transparent;text-align:center;font-weight:700;font-size:18px;font-variant-numeric:tabular-nums;padding:0;display:grid;place-items:center}
+
+/* ---------- join ---------- */
+.brand{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding-top:8px}
+.brand-row{display:flex;align-items:center;gap:12px}
+.logo-mark{width:58px;height:58px;flex:none}
+.lm-back{fill:var(--s4)}
+.lm-front{fill:var(--s1)}
+.lm-bubble{fill:var(--on-suit)}
+.logo{font-family:var(--font-logo);font-weight:700;font-size:clamp(38px,10vw,50px);line-height:1.25;color:var(--fg)}
+.tagline{font-size:17px;color:var(--muted);max-width:34ch}
+
+.join-form{display:flex;flex-direction:column;gap:22px}
+.field{display:flex;flex-direction:column;gap:8px;border:0;margin:0;padding:0;min-width:0}
+.field > label,.field > legend{font-weight:600;font-size:15px;padding:0}
+.field > legend{margin-bottom:8px}
+.seat-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.seat-grid input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.seat-grid label{display:grid;place-items:center;height:52px;border-radius:var(--r-sm);border:1.5px solid var(--line);background:var(--surface-2);font-weight:700;font-size:19px;font-variant-numeric:tabular-nums;cursor:pointer;transition:background-color .15s ease,color .15s ease,border-color .15s ease}
+.seat-grid input:checked + label{background:var(--suit);border-color:var(--suit);color:var(--on-suit)}
+.seat-grid input:focus-visible + label{outline:3px solid var(--focus);outline-offset:2px}
+.form-error{color:var(--danger);font-weight:600;font-size:15px}
+
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;counter-reset:step}
+.steps li{display:grid;grid-template-columns:30px minmax(0,1fr);gap:12px;align-items:start;color:var(--muted);font-size:15px;counter-increment:step}
+.steps li::before{content:counter(step);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--surface);border:1.5px solid var(--line);color:var(--fg);font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.foot{display:flex;justify-content:center;padding-top:4px}
+.quiet-link{color:var(--muted);font-size:14px;text-underline-offset:4px}
+
+/* ---------- play ---------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.who{display:flex;align-items:center;gap:12px;min-width:0}
+.avatar{width:42px;height:42px;border-radius:50%;flex:none;display:grid;place-items:center;background:var(--suit);color:var(--on-suit);font-weight:700;font-size:18px;transition:background-color .3s ease}
+.who-text{display:flex;flex-direction:column;min-width:0;line-height:1.35}
+.who-text strong{font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.who-text span{font-size:14px;color:var(--muted)}
+
+.pips{display:flex;gap:6px}
+.pip{flex:1;appearance:none;border:0;background:none;padding:10px 0;cursor:pointer}
+.pip::before{content:"";display:block;height:7px;border-radius:99px;background:var(--pc);opacity:.2;transition:opacity .2s ease,transform .2s ease}
+.pip.reached::before{opacity:.55}
+.pip.current::before{opacity:1;transform:scaleY(1.45)}
+.pip:disabled{cursor:default}
+
+.round-head{display:flex;flex-direction:column;gap:6px}
+.round-title{font-size:clamp(24px,6.5vw,30px);font-weight:700}
+.round-desc{color:var(--muted);font-size:15.5px}
+
+.stage{display:grid;place-items:center;padding-block:2px 6px}
+.card{width:min(100%,318px);aspect-ratio:5/6;perspective:1400px}
+.card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .62s cubic-bezier(.2,.75,.25,1)}
+.card.flipped .card-inner{transform:rotateY(180deg)}
+.card-inner.instant{transition:none}
+.card-side{position:absolute;inset:0;border-radius:var(--r-lg);-webkit-backface-visibility:hidden;backface-visibility:hidden;background-color:var(--suit);color:var(--on-suit);box-shadow:var(--card-shadow);overflow:hidden;transition:background-color .3s ease}
+.card-back{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;
+  background-image:repeating-linear-gradient(135deg,var(--on-suit-faint) 0 1.5px,transparent 1.5px 13px)}
+.card-back::before{content:"";position:absolute;inset:12px;border:1.5px solid var(--on-suit-soft);border-radius:15px;opacity:.55}
+.back-bubble{width:58%;height:auto;overflow:visible}
+.back-bubble path{fill:var(--suit);stroke:var(--on-suit);stroke-width:3}
+.back-bubble text{fill:var(--on-suit);font-family:var(--font-word);font-size:46px}
+.back-label{position:relative;font-family:var(--font-logo);font-size:24px;line-height:1.3}
+.back-round{position:relative;font-size:14px;color:var(--on-suit-soft)}
+.card-face{transform:rotateY(180deg);display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:20px 20px 18px;gap:8px}
+.face-top{display:flex;justify-content:space-between;gap:8px;font-size:13.5px;font-weight:600}
+.tag{border:1.5px solid var(--on-suit-soft);border-radius:99px;padding:2px 11px;font-variant-numeric:tabular-nums}
+.card-word{align-self:center;justify-self:center;text-align:center;font-family:var(--font-word);font-weight:400;font-size:clamp(38px,12vw,54px);line-height:1.3;text-wrap:balance;overflow-wrap:anywhere}
+.face-bottom{font-size:14px;color:var(--on-suit-soft);text-align:center}
+.card.shuffling{animation:jiggle .16s ease-in-out infinite alternate}
+.card.shuffling .card-word{opacity:.82}
+.card.landed{animation:land .55s cubic-bezier(.2,1.5,.4,1)}
+@keyframes jiggle{from{transform:rotate(-1.3deg)}to{transform:rotate(1.3deg)}}
+@keyframes land{0%{transform:scale(.96)}55%{transform:scale(1.05)}100%{transform:scale(1)}}
+
+.draw{display:flex;flex-direction:column;gap:10px}
+.question-block{display:flex;flex-direction:column;gap:14px;animation:rise .45s ease both}
+.question{font-size:clamp(19px,5vw,21px);font-weight:600;line-height:1.65}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---------- end ---------- */
+.end-head{display:flex;flex-direction:column;gap:8px}
+.end-title{font-family:var(--font-logo);font-size:clamp(34px,9vw,44px);font-weight:700}
+.word-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.word-list li{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:10px 12px}
+.mini-card{flex:none;min-width:116px;max-width:52%;text-align:center;background:var(--pc);color:var(--on-suit);border-radius:12px;padding:8px 12px 4px;font-family:var(--font-word);font-size:22px;line-height:1.35}
+.mini-card.empty{font-family:var(--font-ui);font-size:14px;padding:12px;opacity:.55}
+.wl-text{display:flex;flex-direction:column;min-width:0;line-height:1.4}
+.wl-text small{color:var(--muted);font-size:13px}
+.wl-text span{font-weight:600}
+
+/* ---------- participant timer overlay ---------- */
+.overlay{position:fixed;inset:0;z-index:20;background:var(--suit);color:var(--on-suit);display:flex;justify-content:center;overflow-y:auto;
+  padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.overlay-inner{width:100%;max-width:520px;display:flex;flex-direction:column;gap:18px}
+.overlay-top{display:flex;align-items:center;justify-content:space-between}
+.overlay-top p{font-weight:600;color:var(--on-suit-soft)}
+.icon-btn{appearance:none;border:1.5px solid var(--on-suit-soft);background:none;color:var(--on-suit);width:46px;height:46px;border-radius:50%;display:grid;place-items:center;cursor:pointer}
+.pt-word{font-family:var(--font-word);font-size:clamp(34px,10vw,48px);line-height:1.3;text-align:center;margin-top:8px}
+.pt-digits{font-size:clamp(88px,30vw,150px);font-weight:600;line-height:1;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.pt-status{text-align:center;font-weight:700;font-size:20px;min-height:32px}
+.overlay .bar{background:var(--on-suit-faint);border-color:transparent}
+.overlay .bar span{background:var(--on-suit)}
+.overlay.over .pt-digits{animation:blink 1s steps(2,start) infinite}
+@keyframes blink{50%{opacity:.45}}
+.pt-adjust{display:flex;justify-content:center;gap:10px}
+.btn-on{background:var(--on-suit-faint);color:var(--on-suit);border-color:var(--on-suit-soft)}
+.btn-on-strong{background:var(--on-suit);color:var(--ink-on-paper);border-color:var(--on-suit)}
+.pt-adjust .btn{min-height:42px;padding:8px 16px;font-size:15px}
+
+/* ---------- timer (shared) ---------- */
+.bar{height:10px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden;position:relative}
+.bar span{position:absolute;inset-block:0;inset-inline-start:0;width:100%;background:var(--suit);border-radius:inherit;transition:width .2s linear}
+.digits{direction:ltr;unicode-bidi:isolate}
+
+/* ---------- facilitator ---------- */
+.fac-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.fac-title{font-size:clamp(26px,5vw,32px);font-weight:700}
+.settings{display:flex;flex-wrap:wrap;gap:18px 32px;align-items:flex-start}
+.setting{display:flex;flex-direction:column;gap:7px;min-width:0}
+.setting-label{font-size:14px;font-weight:600;color:var(--muted)}
+.seg{display:inline-flex;flex-wrap:wrap;border:1.5px solid var(--line);border-radius:var(--r-sm);overflow:hidden;background:var(--surface-2)}
+.seg button{appearance:none;border:0;background:none;padding:0 13px;min-height:46px;cursor:pointer;font-weight:600;font-variant-numeric:tabular-nums;direction:ltr}
+.seg button[aria-checked="true"]{background:var(--suit);color:var(--on-suit)}
+.settings-help{flex-basis:100%}
+
+.round-tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:thin}
+@media (min-width:900px){.round-tabs{flex-wrap:wrap;overflow:visible}}
+.tab{flex:0 0 auto;appearance:none;display:flex;align-items:center;gap:9px;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:9px 16px;cursor:pointer;white-space:nowrap;font-weight:600;font-size:15px}
+.tab .dot{width:11px;height:11px;border-radius:50%;background:var(--tc);flex:none}
+.tab .num{font-variant-numeric:tabular-nums;color:var(--muted)}
+.tab[aria-selected="true"]{border-color:var(--tc);background:var(--tc);color:var(--on-suit)}
+.tab[aria-selected="true"] .num{color:var(--on-suit-soft)}
+.tab[aria-selected="true"] .dot{background:var(--on-suit)}
+
+.fac-grid{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.fac-grid{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:start}}
+.side{display:flex;flex-direction:column;gap:18px;min-width:0}
+
+.speaker{display:flex;flex-direction:column;gap:18px;box-shadow:var(--shadow)}
+.speaker-head{display:flex;align-items:center;gap:14px}
+.seat-badge{width:36px;height:36px;border-radius:50%;display:inline-grid;place-items:center;background:var(--surface-2);border:1.5px solid var(--line);font-weight:700;font-variant-numeric:tabular-nums;flex:none}
+.seat-badge.big{width:58px;height:58px;font-size:25px;background:var(--suit);border-color:var(--suit);color:var(--on-suit)}
+.sp-text{display:flex;flex-direction:column;min-width:0;line-height:1.35}
+.sp-text strong{font-size:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.word-chip{align-self:flex-start;font-family:var(--font-word);font-size:clamp(30px,5vw,42px);line-height:1.35;color:var(--on-suit);background:var(--suit);padding:8px 20px 4px;border-radius:16px;max-width:100%}
+.sp-q{font-size:17px;font-weight:500;line-height:1.65}
+.timer{display:flex;flex-direction:column;gap:12px;padding-top:4px}
+.timer-digits{font-size:clamp(76px,13vw,136px);font-weight:600;line-height:1;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:-.02em;transition:color .2s ease}
+.timer-status{text-align:center;font-weight:700;min-height:26px;color:var(--danger)}
+.timer.warn .timer-digits{color:var(--warn)}
+.timer.warn .bar span{background:var(--warn)}
+.timer.over .timer-digits{color:var(--danger)}
+.timer-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.timer-controls .btn{padding-inline:10px}
+.round-done{display:flex;flex-direction:column;gap:14px;align-items:flex-start;padding-block:8px}
+.round-done p{font-size:20px;font-weight:700}
+
+.helpers h3,.seats h3{font-size:18px;font-weight:700}
+.helpers{display:flex;flex-direction:column;gap:10px}
+.helper-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.helper-list li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;font-size:16px;line-height:1.6}
+.helper-list li::before{content:"؟";font-family:var(--font-word);font-size:20px;color:var(--suit-ink);line-height:1.4}
+
+.seats{display:flex;flex-direction:column;gap:10px}
+.seats-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.seat-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.seat-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;padding:7px 8px;border-radius:var(--r-sm);border:1.5px solid transparent}
+.seat-row.is-current{border-color:var(--suit);background:var(--surface-2)}
+.seat-row.is-done .seat-mid{opacity:.6}
+.seat-pick{appearance:none;border:0;background:none;padding:0;cursor:pointer;border-radius:50%}
+.seat-row.is-current .seat-badge{background:var(--suit);border-color:var(--suit);color:var(--on-suit)}
+.seat-mid{display:flex;flex-direction:column;gap:2px;min-width:0}
+.seat-row input.seat-name{min-height:34px;padding:4px 8px;border-color:transparent;background:transparent;font-size:15px;font-weight:600}
+.seat-row input.seat-name:hover{border-color:var(--line)}
+.seat-row input.seat-name:focus{border-color:var(--suit-ink);background:var(--surface-2)}
+.seat-word{padding-inline:8px;font-size:14.5px;color:var(--suit-ink);font-weight:600}
+.seat-word.hidden-word{color:var(--muted);letter-spacing:.2em}
+.pill{font-size:12.5px;font-weight:700;border-radius:99px;padding:3px 10px;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.pill.now{background:var(--suit);color:var(--on-suit)}
+.pill.next{border:1.5px solid var(--line);color:var(--muted)}
+.pill.done{color:var(--muted)}
+.pill .icon{width:15px;height:15px}
+
+details.panel{padding:0}
+details.panel > summary{cursor:pointer;padding:16px 20px;font-weight:700;font-size:17px;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px}
+details.panel > summary::-webkit-details-marker{display:none}
+details.panel > summary::after{content:"+";font-size:22px;color:var(--muted);line-height:1}
+details.panel[open] > summary::after{content:"−"}
+.details-body{padding:0 20px 20px;display:flex;flex-direction:column;gap:12px}
+.notes-list{margin:0;padding-inline-start:20px;display:flex;flex-direction:column;gap:8px;line-height:1.65}
+.qr-grid{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:760px){.qr-grid{grid-template-columns:minmax(0,1fr) auto;align-items:start}}
+.qr-form{display:flex;flex-direction:column;gap:10px;min-width:0}
+.check{display:flex;align-items:center;gap:10px;font-size:15px;cursor:pointer}
+.check input{width:20px;height:20px;accent-color:var(--suit)}
+.qr-tile{background:var(--paper);border-radius:var(--r-md);padding:14px;display:grid;place-items:center;border:1px solid var(--line);width:min(100%,300px);justify-self:center}
+.qr-tile canvas{width:100%;max-width:272px;height:auto;aspect-ratio:1;display:block}
+.qr-empty{color:var(--muted-on-paper);font-size:14px;text-align:center;padding:40px 12px;line-height:1.6}
+.qr-url{font-size:13px;direction:ltr;text-align:left}
+
+@media (prefers-reduced-motion: reduce){
+  .card-inner{transition:none}
+  .card.shuffling,.card.landed,.question-block,.overlay.over .pt-digits{animation:none}
+  .bar span{transition:none}
+}
+</style>
+
+<div id="app" dir="rtl" lang="ar">
+
+  <!-- ================= JOIN ================= -->
+  <main id="view-join" class="view">
+    <header class="brand">
+      <div class="brand-row">
+        <svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true">
+          <rect class="lm-back" x="10" y="9" width="30" height="41" rx="6" transform="rotate(-13 25 29.5)"/>
+          <g transform="rotate(7 36 33)">
+            <rect class="lm-front" x="21" y="12" width="30" height="41" rx="6"/>
+            <path class="lm-bubble" d="M29 25h14a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3h-6l-5 4v-4h-3a3 3 0 0 1-3-3v-7a3 3 0 0 1 3-3z"/>
+          </g>
+        </svg>
+      </div>
+      <h1 class="logo">كلمة وراها حكاية</h1>
+      <p class="tagline">خمس جولات. بكل جولة بتسحب كلمة، وبتحكي عنها من تجربتك.</p>
+    </header>
+
+    <form id="join-form" class="panel join-form" novalidate>
+      <div class="field">
+        <label for="in-name">شو اسمك؟</label>
+        <input id="in-name" type="text" autocomplete="given-name" maxlength="30" placeholder="الاسم الأول بكفي" required>
+      </div>
+      <div class="field">
+        <label for="in-table">رقم الطاولة</label>
+        <div class="stepper">
+          <button type="button" id="tbl-minus" aria-label="رقم طاولة أقل">−</button>
+          <input id="in-table" type="number" inputmode="numeric" min="1" max="99" value="1">
+          <button type="button" id="tbl-plus" aria-label="رقم طاولة أكبر">+</button>
+        </div>
+        <p class="help" id="table-note" hidden>رقم الطاولة إجا من رمز الـQR.</p>
+      </div>
+      <fieldset class="field">
+        <legend>رقمك على الطاولة</legend>
+        <div class="seat-grid" id="seat-grid">
+          <input type="radio" name="seat" id="seat-1" value="1"><label for="seat-1">1</label>
+          <input type="radio" name="seat" id="seat-2" value="2"><label for="seat-2">2</label>
+          <input type="radio" name="seat" id="seat-3" value="3"><label for="seat-3">3</label>
+          <input type="radio" name="seat" id="seat-4" value="4"><label for="seat-4">4</label>
+          <input type="radio" name="seat" id="seat-5" value="5"><label for="seat-5">5</label>
+          <input type="radio" name="seat" id="seat-6" value="6"><label for="seat-6">6</label>
+          <input type="radio" name="seat" id="seat-7" value="7"><label for="seat-7">7</label>
+          <input type="radio" name="seat" id="seat-8" value="8"><label for="seat-8">8</label>
+          <input type="radio" name="seat" id="seat-9" value="9"><label for="seat-9">9</label>
+          <input type="radio" name="seat" id="seat-10" value="10"><label for="seat-10">10</label>
+        </div>
+        <p class="help">الميسّر بوزّع الأرقام. كل رقم على نفس الطاولة بتطلعله كلمة مختلفة.</p>
+      </fieldset>
+      <p class="form-error" id="join-error" role="alert" hidden></p>
+      <button class="btn btn-primary btn-big" type="submit">يلّا نبلّش</button>
+    </form>
+
+    <ol class="steps">
+      <li>الميسّر بشرح الفعالية وبعطي كل واحد رقم.</li>
+      <li>لما تبلّش الجولة، اكبس «اخلط» وبتطلعلك كلمة وسؤال.</li>
+      <li>كل واحد بدوره بحكي عن كلمته، والمؤقّت بضبط الوقت.</li>
+    </ol>
+    <footer class="foot"><a class="quiet-link" href="#facilitator">شاشة الميسّر</a></footer>
+  </main>
+
+  <!-- ================= PLAY ================= -->
+  <main id="view-play" class="view" hidden>
+    <header class="topbar">
+      <div class="who">
+        <span class="avatar" id="p-avatar" aria-hidden="true">؟</span>
+        <div class="who-text"><strong id="p-name"></strong><span id="p-meta"></span></div>
+      </div>
+      <button class="btn-text" id="btn-edit" type="button">تغيير</button>
+    </header>
+
+    <nav class="pips" id="pips" aria-label="الجولات"></nav>
+
+    <section class="round-head">
+      <p class="eyebrow" id="r-count"></p>
+      <h2 class="round-title" id="r-title"></h2>
+      <p class="round-desc" id="r-desc"></p>
+    </section>
+
+    <div class="stage">
+      <div class="card" id="card">
+        <div class="card-inner" id="card-inner">
+          <div class="card-side card-back" aria-hidden="true">
+            <svg class="back-bubble" viewBox="0 0 120 104">
+              <path d="M18 6h84a14 14 0 0 1 14 14v46a14 14 0 0 1-14 14H58L36 98V80H18A14 14 0 0 1 4 66V20A14 14 0 0 1 18 6z"/>
+              <text x="60" y="62" text-anchor="middle">؟</text>
+            </svg>
+            <span class="back-label">كلمة وراها حكاية</span>
+            <span class="back-round" id="c-back-round"></span>
+          </div>
+          <div class="card-side card-face" id="card-face" aria-live="polite">
+            <div class="face-top"><span class="tag" id="c-round"></span><span class="tag" id="c-seat"></span></div>
+            <span class="card-word" id="c-word"></span>
+            <span class="face-bottom" id="c-group"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="draw" id="draw-block">
+      <button class="btn btn-primary btn-big" id="btn-shuffle" type="button">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+        <span id="shuffle-label">اخلط واسحب كلمتك</span>
+      </button>
+      <p class="help center">استنّى الميسّر يبلّش الجولة، وبعدين اكبس.</p>
+    </div>
+
+    <section class="question-block panel" id="q-block" hidden>
+      <p class="eyebrow">السؤال</p>
+      <p class="question" id="q-text"></p>
+      <p class="help">حضّر جوابك من تجربتك. ما في جواب صح أو غلط.</p>
+      <div class="row">
+        <button class="btn btn-secondary" id="btn-timer" type="button">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2"/><path d="M9.5 2.5h5"/></svg>
+          مؤقّت الدور
+        </button>
+        <button class="btn btn-primary" id="btn-next" type="button">
+          <span id="next-label">الجولة التالية</span>
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+      </div>
+      <p class="help">انتقلوا للجولة اللي بعدها لما الكل يحكي والميسّر يقول.</p>
+    </section>
+  </main>
+
+  <!-- ================= END ================= -->
+  <main id="view-end" class="view" hidden>
+    <header class="end-head">
+      <p class="eyebrow" id="end-who"></p>
+      <h2 class="end-title">خلصنا الجولات</h2>
+      <p class="help">شكراً على الحكايات. هاي الكلمات اللي طلعتلك اليوم:</p>
+    </header>
+    <ol class="word-list" id="end-list"></ol>
+    <div class="row">
+      <button class="btn btn-secondary" id="btn-back-rounds" type="button">رجوع للجولات</button>
+    </div>
+  </main>
+
+  <!-- ================= FACILITATOR ================= -->
+  <main id="view-fac" class="view wide" hidden>
+    <header class="fac-head">
+      <div>
+        <p class="eyebrow">كلمة وراها حكاية</p>
+        <h1 class="fac-title">شاشة الميسّر</h1>
+      </div>
+      <button class="btn btn-secondary" id="to-player" type="button">شاشة المشاركين</button>
+    </header>
+
+    <section class="panel settings" aria-label="إعدادات الطاولة">
+      <div class="setting">
+        <span class="setting-label" id="lbl-table">الطاولة</span>
+        <div class="stepper" role="group" aria-labelledby="lbl-table">
+          <button type="button" data-set="table" data-step="-1" aria-label="طاولة أقل">−</button>
+          <output id="f-table">1</output>
+          <button type="button" data-set="table" data-step="1" aria-label="طاولة أكبر">+</button>
+        </div>
+      </div>
+      <div class="setting">
+        <span class="setting-label" id="lbl-count">عدد المشاركين</span>
+        <div class="stepper" role="group" aria-labelledby="lbl-count">
+          <button type="button" data-set="count" data-step="-1" aria-label="مشارك أقل">−</button>
+          <output id="f-count">8</output>
+          <button type="button" data-set="count" data-step="1" aria-label="مشارك أكثر">+</button>
+        </div>
+      </div>
+      <div class="setting">
+        <span class="setting-label" id="lbl-dur">وقت كل مشارك</span>
+        <div class="seg" id="f-dur" role="radiogroup" aria-labelledby="lbl-dur">
+          <button type="button" role="radio" data-sec="60">1:00</button>
+          <button type="button" role="radio" data-sec="90">1:30</button>
+          <button type="button" role="radio" data-sec="120">2:00</button>
+          <button type="button" role="radio" data-sec="150">2:30</button>
+          <button type="button" role="radio" data-sec="180">3:00</button>
+        </div>
+      </div>
+      <p class="help settings-help" id="f-estimate"></p>
+    </section>
+
+    <nav class="round-tabs" id="round-tabs" role="tablist" aria-label="المجموعات"></nav>
+
+    <div class="fac-grid">
+      <section class="panel speaker" aria-labelledby="sp-name">
+        <div id="speaker-live">
+          <div class="speaker-head">
+            <span class="seat-badge big" id="sp-seat">1</span>
+            <div class="sp-text">
+              <span class="eyebrow">هلّق دور</span>
+              <strong id="sp-name"></strong>
+            </div>
+          </div>
+        </div>
+        <span class="word-chip" id="sp-word"></span>
+        <p class="sp-q" id="sp-q"></p>
+        <div class="timer" id="f-timer">
+          <div class="timer-digits digits" id="f-digits">2:00</div>
+          <div class="bar"><span id="f-bar"></span></div>
+          <div class="timer-status" id="f-status" aria-live="polite"></div>
+        </div>
+        <div class="timer-controls" id="f-controls">
+          <button class="btn btn-primary" id="f-start" type="button">ابدأ</button>
+          <button class="btn btn-secondary" id="f-reset" type="button">من جديد</button>
+          <button class="btn btn-secondary" id="f-next" type="button">التالي
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+        </div>
+        <div class="round-done" id="round-done" hidden>
+          <p id="round-done-text">الكل حكى بهالجولة.</p>
+          <div class="row">
+            <button class="btn btn-primary" id="f-next-round" type="button">للجولة التالية</button>
+            <button class="btn btn-secondary" id="f-redo" type="button">عيد الجولة من الأول</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="side">
+        <section class="panel helpers">
+          <h3>أسئلة مساعدة</h3>
+          <p class="help">إلك بس. مش ظاهرة عند المشاركين. استعملها إذا بدك توسّع النقاش.</p>
+          <ul class="helper-list" id="helper-list"></ul>
+        </section>
+        <section class="panel seats">
+          <div class="seats-head">
+            <h3>الطاولة بهالجولة</h3>
+            <button class="btn-text" id="toggle-words" type="button">اكشف كل الكلمات</button>
+          </div>
+          <p class="help" id="start-note"></p>
+          <ol class="seat-list" id="seat-list"></ol>
+        </section>
+      </div>
+    </div>
+
+    <details class="panel">
+      <summary>ملاحظات للميسّر</summary>
+      <div class="details-body">
+        <ul class="notes-list">
+          <li>مش ضروري كل مشارك يجاوب عن كل الأسئلة المساعدة. السؤال الرئيسي بكفي، والباقي حسب سير النقاش.</li>
+          <li>إذا حدا طلعله كلمة ما بتعبّر عنه، عادي يحكي ليش ما بتناسبه.</li>
+          <li>كل مشارك إله وقت محدّد للإجابة، حسب المؤقّت الموجود بالرابط.</li>
+          <li>إذا حدا شارك بتجربة مثيرة للاهتمام، ممكن نسأل إذا حدا ثاني مرّ بتجربة مشابهة، إذا الوقت بسمح.</li>
+          <li>مش مطلوب من المشاركين يحكوا تفاصيل شخصية أو حسّاسة عن مكان شغلهم.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="panel" id="qr-panel">
+      <summary>رمز QR للمشاركين</summary>
+      <div class="details-body">
+        <div class="qr-grid">
+          <div class="qr-form">
+            <label for="qr-link"><strong>رابط الصفحة</strong></label>
+            <input id="qr-link" type="url" dir="ltr" inputmode="url" placeholder="https://claude.ai/…" autocomplete="off">
+            <p class="help">انسخ الرابط العام لهالصفحة (من زر المشاركة) والصقه هون.</p>
+            <label class="check"><input type="checkbox" id="qr-per-table"> رابط خاص بهالطاولة (رقم الطاولة بتعبّى لحاله)</label>
+            <input id="qr-out" type="text" dir="ltr" class="qr-url" readonly aria-label="الرابط اللي بالرمز">
+            <div class="row"><button class="btn btn-secondary" id="qr-copy" type="button">نسخ الرابط</button></div>
+          </div>
+          <div class="qr-tile">
+            <canvas id="qr-canvas" width="544" height="544" hidden></canvas>
+            <p class="qr-empty" id="qr-empty">الصق الرابط وبيطلع الرمز هون.</p>
+          </div>
+        </div>
+      </div>
+    </details>
+  </main>
+
+  <!-- ================= PARTICIPANT TIMER ================= -->
+  <div class="overlay" id="p-timer" role="dialog" aria-modal="true" aria-labelledby="pt-title" hidden>
+    <div class="overlay-inner">
+      <div class="overlay-top">
+        <p id="pt-title">مؤقّت الدور</p>
+        <button class="icon-btn" id="pt-close" type="button" aria-label="سكّر المؤقّت">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <p class="pt-word" id="pt-word"></p>
+      <div class="pt-digits digits" id="pt-digits">2:00</div>
+      <div class="bar"><span id="pt-bar"></span></div>
+      <p class="pt-status" id="pt-status" aria-live="polite"></p>
+      <div class="pt-adjust">
+        <button class="btn btn-on" id="pt-minus" type="button">− 30 ثانية</button>
+        <button class="btn btn-on" id="pt-plus" type="button">+ 30 ثانية</button>
+      </div>
+      <div class="row">
+        <button class="btn btn-on-strong btn-big" id="pt-start" type="button">ابدأ</button>
+        <button class="btn btn-on btn-big" id="pt-reset" type="button">من جديد</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  document.documentElement.lang = "ar";
+  document.documentElement.dir = "rtl";
+
+  // ------------------------------------------------------------------
+  // Content: five groups, ten words each, one shared question, helpers
+  // for the facilitator only.
+  // ------------------------------------------------------------------
+  var GROUPS = [
+    {
+      title: "مهاراتنا بالشغل",
+      desc: "المهارات والصفات اللي بتساعدنا ننجح ونتطوّر بحياتنا المهنية.",
+      words: ["القيادة", "العمل الجماعي", "التواصل", "الإبداع", "حلّ المشاكل", "إدارة الوقت", "المرونة", "اتخاذ القرارات", "تحمّل المسؤولية", "المبادرة"],
+      question: "قديش بتحسّوا إنّ هاي المهارة موجودة عندكم بالشغل؟ واحكولنا عن موقف بيبيّن هالإشي.",
+      helpers: ["بتحسّوا إنّها مهارة طبيعية عندكم، ولا اكتسبتوها مع الوقت؟", "شو ممكن يساعدكم تطوّروها أكثر؟", "قديش بتشوفوا إنّها مهمة للنجاح بالشغل؟"]
+    },
+    {
+      title: "كيف منفصل عن ضغط الشغل؟",
+      desc: "الأشياء اللي منعملها عشان نرتاح، نخفّف التوتر، ونوازن بين الشغل وحياتنا الشخصية.",
+      words: ["الرياضة", "القراءة", "السفر", "المشي", "الموسيقى", "التأمّل", "الطبخ", "الطلعات مع الأصحاب", "الوقت مع العيلة", "الوقت لحالنا"],
+      question: "قديش هالنشاط جزء من حياتكم؟ وهل فعلًا بساعدكم تفصلوا عن ضغط الشغل؟",
+      helpers: ["إمتى آخر مرة عملتوا هالإشي؟", "إذا مش جزء من روتينكم، بتحبّوا تجرّبوه؟ ليش؟", "شو أكثر إشي بساعدكم تنسوا ضغط الشغل؟"]
+    },
+    {
+      title: "شو مندوّر عليه بمكان الشغل؟",
+      desc: "الأشياء اللي بتخلّينا نرتاح بمكان عملنا ونحسّ إنه مناسب إلنا.",
+      words: ["الراتب", "التقدير", "الاستقرار", "المرونة", "التطوّر المهني", "العلاقات مع الزملاء", "الاستقلالية", "بيئة مريحة", "فرص الترقية", "الشعور بالإنجاز"],
+      question: "قديش هالإشي مهم إلكم بمكان الشغل؟ وهل ممكن تتنازلوا عنه مقابل إشي ثاني؟",
+      helpers: ["هل هالإشي موجود بمكان شغلكم الحالي؟", "هل أهميته تغيّرت عندكم مع الوقت؟", "ممكن تتركوا شغل بسبب غيابه؟"]
+    },
+    {
+      title: "تحدّيات منواجهها بالشغل",
+      desc: "مواقف وصعوبات ممكن نمرّ فيها بحياتنا المهنية، وكيف منتعامل معها.",
+      words: ["ضغط الوقت", "النقد", "عدم التطور والتقدم", "المنافسة", "الخلافات", "التغيير", "الرفض", "كثرة المسؤوليات", "قلة التقدير", "الخوف من الغلط"],
+      question: "هل واجهتوا هالتحدّي بحياتكم المهنية؟ وكيف تعاملتوا معه؟",
+      helpers: ["شو كان أصعب إشي بالنسبة إلكم بهالموقف؟", "هل بتتعاملوا معه اليوم بطريقة مختلفة عن قبل؟", "شو تعلّمتوا من هالتجربة؟"]
+    },
+    {
+      title: "العلاقات والتواصل بعالم الشغل",
+      desc: "كيف منبني علاقات مهنية، ومنتعرّف على ناس جدد، ومنفتح فرص لبعض.",
+      words: ["التعارف", "الثقة", "الدعم", "التعاون", "المساعدة", "المعارف", "المصلحة", "الانطباع الأول", "الحدود", "تبادل الخبرات"],
+      question: "شو دور هالإشي بعلاقاتكم المهنية؟ واحكولنا عن تجربة أو موقف مرتبط فيه.",
+      helpers: ["قديش هالإشي مهم بالنسبة إلكم بالعلاقات المهنية؟", "هل مرّيتوا بتجربة غيّرت نظرتكم إله؟", "هل بتشوفوا إنه العلاقات المهنية لازم تكون مختلفة عن الصداقات؟"]
+    }
+  ];
+  var LAST = GROUPS.length - 1;
+  var MAX_SEATS = 10;
+
+  // ------------------------------------------------------------------
+  // Helpers
+  // ------------------------------------------------------------------
+  function $(sel, root) { return (root || document).querySelector(sel); }
+  function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
+  function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  var reduceMotion = false;
+  try { reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+
+  var store = {
+    get: function (k, fallback) {
+      try { var v = window.localStorage.getItem(k); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; }
+    },
+    set: function (k, v) {
+      try { window.localStorage.setItem(k, JSON.stringify(v)); } catch (e) {}
+    }
+  };
+
+  function vibrate(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
+  var audioCtx = null;
+  function unlockAudio() {
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!audioCtx) audioCtx = new AC();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+    } catch (e) {}
+  }
+  function chime() {
+    if (!audioCtx) return;
+    try {
+      var t0 = audioCtx.currentTime;
+      [0, 0.3, 0.6].forEach(function (d, i) {
+        var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = "sine";
+        o.frequency.value = i === 2 ? 659 : 880;
+        g.gain.setValueAtTime(0.0001, t0 + d);
+        g.gain.exponentialRampToValueAtTime(0.32, t0 + d + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.26);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(t0 + d); o.stop(t0 + d + 0.3);
+      });
+    } catch (e) {}
+  }
+
+  var wakeLock = null;
+  function keepAwake() {
+    try {
+      if (wakeLock || !("wakeLock" in navigator)) return;
+      navigator.wakeLock.request("screen").then(function (l) {
+        wakeLock = l;
+        l.addEventListener("release", function () { wakeLock = null; });
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function setSuit(round) {
+    var n = clamp(round, 0, LAST) + 1;
+    var app = $("#app");
+    app.style.setProperty("--suit", "var(--s" + n + ")");
+    app.style.setProperty("--suit-ink", "var(--s" + n + "-ink)");
+  }
+
+  function fmtClock(ms) {
+    var over = ms < 0;
+    var s = over ? Math.floor(-ms / 1000) : Math.ceil(ms / 1000);
+    var m = Math.floor(s / 60), ss = s % 60;
+    return (over ? "+" : "") + m + ":" + (ss < 10 ? "0" : "") + ss;
+  }
+  function fmtDur(sec) { return Math.floor(sec / 60) + ":" + (sec % 60 < 10 ? "0" : "") + (sec % 60); }
+
+  // ------------------------------------------------------------------
+  // The deal. Same table + same round + same day always gives the same
+  // shuffle, so every phone computes the same result with no server:
+  // seat N gets position N of the shuffled list, which guarantees that
+  // everyone at one table holds a different word.
+  // The day rolls over at 05:00 so a late evening stays one "day".
+  // ------------------------------------------------------------------
+  function dayKey() {
+    var d = new Date(Date.now() - 5 * 3600 * 1000);
+    return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+  }
+  function hashStr(s) {
+    var h = 2166136261 >>> 0;
+    for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+    return h;
+  }
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function dealOrder(table, round) {
+    var r = rng(hashStr("kwh|" + dayKey() + "|t" + table + "|r" + round));
+    var idx = GROUPS[round].words.map(function (_, i) { return i; });
+    for (var i = idx.length - 1; i > 0; i--) {
+      var j = Math.floor(r() * (i + 1));
+      var tmp = idx[i]; idx[i] = idx[j]; idx[j] = tmp;
+    }
+    return idx;
+  }
+  function wordFor(table, round, seat) {
+    return GROUPS[round].words[dealOrder(table, round)[seat - 1]];
+  }
+
+  // ------------------------------------------------------------------
+  // Timer (used by the facilitator screen and the participant overlay)
+  // ------------------------------------------------------------------
+  function makeTimer(onTick, onEnd) {
+    var duration = 120, acc = 0, started = 0, iv = null, ended = false;
+    function now() { return (window.performance && performance.now) ? performance.now() : Date.now(); }
+    function elapsed() { return acc + (started ? now() - started : 0); }
+    function tick() {
+      var rem = duration * 1000 - elapsed();
+      if (started && !ended && rem <= 0) { ended = true; if (onEnd) onEnd(); }
+      onTick(rem, api);
+    }
+    var api = {
+      get running() { return !!started; },
+      get duration() { return duration; },
+      elapsed: elapsed,
+      start: function () { if (started) return; started = now(); iv = setInterval(tick, 200); tick(); },
+      pause: function () { if (!started) return; acc = elapsed(); started = 0; clearInterval(iv); iv = null; tick(); },
+      reset: function () { clearInterval(iv); iv = null; started = 0; acc = 0; ended = false; tick(); },
+      setDuration: function (sec) {
+        duration = sec;
+        if (duration * 1000 - elapsed() > 0) ended = false;
+        tick();
+      },
+      refresh: tick
+    };
+    return api;
+  }
+
+  // ------------------------------------------------------------------
+  // Views
+  // ------------------------------------------------------------------
+  var views = { join: $("#view-join"), play: $("#view-play"), end: $("#view-end"), fac: $("#view-fac") };
+  function showView(name) {
+    Object.keys(views).forEach(function (k) { views[k].hidden = k !== name; });
+    try { window.scrollTo(0, 0); } catch (e) {}
+  }
+
+  // ------------------------------------------------------------------
+  // Participant
+  // ------------------------------------------------------------------
+  var P_KEY = "kwh.player.v1";
+  var hashTable = null;
+  var player = sanitizePlayer(store.get(P_KEY, null));
+
+  function freshProgress() {
+    return { day: dayKey(), round: 0, maxRound: 0, revealed: GROUPS.map(function () { return false; }) };
+  }
+  function sanitizePlayer(p) {
+    if (!p || typeof p !== "object") return null;
+    if (typeof p.name !== "string" || !p.name.trim()) return null;
+    if (!(p.table >= 1 && p.table <= 99) || !(p.seat >= 1 && p.seat <= MAX_SEATS)) return null;
+    if (p.day !== dayKey() || !Array.isArray(p.revealed) || p.revealed.length !== GROUPS.length) {
+      var f = freshProgress();
+      p.day = f.day; p.round = f.round; p.maxRound = f.maxRound; p.revealed = f.revealed;
+    }
+    p.round = clamp(p.round | 0, 0, LAST);
+    p.maxRound = clamp(Math.max(p.maxRound | 0, p.round), 0, LAST);
+    return p;
+  }
+  function savePlayer() { store.set(P_KEY, player); }
+
+  // ---- join ----
+  var joinForm = $("#join-form");
+  var inName = $("#in-name"), inTable = $("#in-table"), seatGrid = $("#seat-grid");
+
+  function showJoin() {
+    setSuit(0);
+    inName.value = player ? player.name : "";
+    inTable.value = hashTable || (player && player.table) || 1;
+    $("#table-note").hidden = !hashTable;
+    var s = player ? player.seat : 0;
+    seatGrid.querySelectorAll("input").forEach(function (i) { i.checked = Number(i.value) === s; });
+    $("#join-error").hidden = true;
+    showView("join");
+  }
+  function joinError(msg, focusEl) {
+    var e = $("#join-error");
+    e.textContent = msg; e.hidden = false;
+    if (focusEl) focusEl.focus();
+  }
+  $("#tbl-minus").addEventListener("click", function () { inTable.value = clamp((parseInt(inTable.value, 10) || 1) - 1, 1, 99); });
+  $("#tbl-plus").addEventListener("click", function () { inTable.value = clamp((parseInt(inTable.value, 10) || 0) + 1, 1, 99); });
+
+  joinForm.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var name = inName.value.trim().replace(/\s+/g, " ").slice(0, 30);
+    var table = parseInt(inTable.value, 10);
+    var seatEl = seatGrid.querySelector("input:checked");
+    if (!name) return joinError("اكتب اسمك عشان نبلّش.", inName);
+    if (!(table >= 1 && table <= 99)) return joinError("رقم الطاولة لازم يكون بين 1 و-99.", inTable);
+    if (!seatEl) return joinError("اختار رقمك على الطاولة. الميسّر بعطيك إياه.");
+    var seat = Number(seatEl.value);
+    var changed = !player || player.table !== table || player.seat !== seat;
+    var base = player || {};
+    base.name = name; base.table = table; base.seat = seat;
+    if (changed) { var f = freshProgress(); base.day = f.day; base.round = 0; base.maxRound = 0; base.revealed = f.revealed; }
+    player = sanitizePlayer(base);
+    savePlayer();
+    showPlay();
+  });
+
+  // ---- play ----
+  var card = $("#card"), cardInner = $("#card-inner");
+  var shuffling = false;
+
+  function showPlay() { showView("play"); renderPlay(); }
+
+  function renderPlay() {
+    var r = player.round, g = GROUPS[r];
+    setSuit(r);
+    $("#p-avatar").textContent = player.name.charAt(0);
+    $("#p-name").textContent = player.name;
+    $("#p-meta").textContent = "طاولة " + player.table + " · رقم " + player.seat;
+
+    var pips = $("#pips");
+    pips.textContent = "";
+    GROUPS.forEach(function (gr, i) {
+      var b = el("button", "pip");
+      b.type = "button";
+      b.style.setProperty("--pc", "var(--s" + (i + 1) + ")");
+      if (i <= player.maxRound) b.classList.add("reached");
+      if (i === r) { b.classList.add("current"); b.setAttribute("aria-current", "step"); }
+      b.disabled = i > player.maxRound;
+      b.setAttribute("aria-label", "الجولة " + (i + 1) + ": " + gr.title);
+      b.addEventListener("click", function () {
+        if (shuffling || i > player.maxRound || i === player.round) return;
+        player.round = i; savePlayer(); renderPlay();
+      });
+      pips.appendChild(b);
+    });
+
+    $("#r-count").textContent = "الجولة " + (r + 1) + " من " + GROUPS.length;
+    $("#r-title").textContent = g.title;
+    $("#r-desc").textContent = g.desc;
+    $("#c-back-round").textContent = "الجولة " + (r + 1);
+    $("#c-round").textContent = "جولة " + (r + 1);
+    $("#c-seat").textContent = "رقم " + player.seat;
+    $("#c-group").textContent = g.title;
+    $("#q-text").textContent = g.question;
+    $("#next-label").textContent = r === LAST ? "خلصنا" : "الجولة التالية";
+
+    var revealed = !!player.revealed[r];
+    cardInner.classList.add("instant");
+    card.classList.remove("shuffling", "landed");
+    card.classList.toggle("flipped", revealed);
+    $("#c-word").textContent = revealed ? wordFor(player.table, r, player.seat) : "";
+    // force the instant state to apply before re-enabling the flip transition
+    void cardInner.offsetWidth;
+    cardInner.classList.remove("instant");
+
+    $("#draw-block").hidden = revealed;
+    $("#q-block").hidden = !revealed;
+    $("#btn-shuffle").disabled = false;
+    $("#shuffle-label").textContent = "اخلط واسحب كلمتك";
+  }
+
+  function doShuffle() {
+    if (shuffling) return;
+    shuffling = true;
+    var r = player.round, g = GROUPS[r];
+    var finalWord = wordFor(player.table, r, player.seat);
+    var btn = $("#btn-shuffle"), cWord = $("#c-word");
+    btn.disabled = true;
+    $("#shuffle-label").textContent = "عم نخلط…";
+
+    var pool = g.words.filter(function (w) { return w !== finalWord; });
+    for (var i = pool.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
+
+    var run = Promise.resolve();
+    if (!reduceMotion) {
+      run = run.then(function () {
+        cWord.textContent = pool[0];
+        card.classList.add("flipped", "shuffling");
+        return wait(380);
+      }).then(function () {
+        var delay = 55, k = 1;
+        function step() {
+          if (delay > 270) return Promise.resolve();
+          cWord.textContent = pool[k++ % pool.length];
+          return wait(delay).then(function () { delay *= 1.13; return step(); });
+        }
+        return step();
+      });
+    }
+    run.then(function () {
+      cWord.textContent = finalWord;
+      card.classList.remove("shuffling");
+      card.classList.add("flipped");
+      if (!reduceMotion) card.classList.add("landed");
+      vibrate(40);
+      player.revealed[r] = true;
+      savePlayer();
+      setTimeout(function () { card.classList.remove("landed"); }, 600);
+      $("#draw-block").hidden = true;
+      var q = $("#q-block");
+      q.hidden = false;
+      try { q.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest" }); } catch (e) {}
+      shuffling = false;
+    });
+  }
+  $("#btn-shuffle").addEventListener("click", doShuffle);
+
+  $("#btn-next").addEventListener("click", function () {
+    if (player.round < LAST) {
+      player.round += 1;
+      player.maxRound = Math.max(player.maxRound, player.round);
+      savePlayer();
+      renderPlay();
+      try { window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" }); } catch (e) {}
+    } else {
+      showEnd();
+    }
+  });
+  $("#btn-edit").addEventListener("click", showJoin);
+
+  // ---- end ----
+  function showEnd() {
+    setSuit(LAST);
+    $("#end-who").textContent = player.name + " · طاولة " + player.table;
+    var list = $("#end-list");
+    list.textContent = "";
+    GROUPS.forEach(function (g, i) {
+      var li = el("li");
+      li.style.setProperty("--pc", "var(--s" + (i + 1) + ")");
+      var revealed = player.revealed[i];
+      var mc = el("span", "mini-card" + (revealed ? "" : " empty"), revealed ? wordFor(player.table, i, player.seat) : "ما انسحبت");
+      var tx = el("span", "wl-text");
+      tx.appendChild(el("small", null, "الجولة " + (i + 1)));
+      tx.appendChild(el("span", null, g.title));
+      li.appendChild(mc); li.appendChild(tx);
+      list.appendChild(li);
+    });
+    showView("end");
+  }
+  $("#btn-back-rounds").addEventListener("click", function () { player.round = LAST; savePlayer(); showPlay(); });
+
+  // ---- participant timer overlay ----
+  var ptEl = $("#p-timer");
+  var ptDuration = clamp(store.get("kwh.ptimer.v1", 120) | 0, 30, 600);
+  var pTimer = makeTimer(function (rem, t) {
+    $("#pt-digits").textContent = fmtClock(rem);
+    $("#pt-bar").style.width = (clamp(rem / (t.duration * 1000), 0, 1) * 100) + "%";
+    ptEl.classList.toggle("over", rem <= 0);
+    $("#pt-status").textContent = rem <= 0 ? "خلص الوقت" : (rem <= 15000 && t.running ? "آخر ثواني" : "");
+    $("#pt-start").textContent = t.running ? "وقّف" : (t.elapsed() > 0 ? "كمّل" : "ابدأ");
+  }, function () { chime(); vibrate([220, 120, 220]); });
+  pTimer.setDuration(ptDuration);
+
+  function openPTimer() {
+    $("#pt-word").textContent = wordFor(player.table, player.round, player.seat);
+    pTimer.reset();
+    ptEl.hidden = false;
+    $("#pt-close").focus();
+  }
+  function closePTimer() {
+    pTimer.reset();
+    ptEl.hidden = true;
+    $("#btn-timer").focus();
+  }
+  $("#btn-timer").addEventListener("click", openPTimer);
+  $("#pt-close").addEventListener("click", closePTimer);
+  $("#pt-start").addEventListener("click", function () {
+    unlockAudio();
+    if (pTimer.running) pTimer.pause(); else { pTimer.start(); keepAwake(); }
+  });
+  $("#pt-reset").addEventListener("click", function () { pTimer.reset(); });
+  function adjustPT(delta) {
+    ptDuration = clamp(ptDuration + delta, 30, 600);
+    store.set("kwh.ptimer.v1", ptDuration);
+    pTimer.setDuration(ptDuration);
+  }
+  $("#pt-minus").addEventListener("click", function () { adjustPT(-30); });
+  $("#pt-plus").addEventListener("click", function () { adjustPT(30); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !ptEl.hidden) closePTimer(); });
+
+  // ------------------------------------------------------------------
+  // Facilitator
+  // ------------------------------------------------------------------
+  var F_KEY = "kwh.facilitator.v1";
+  var fac = (function () {
+    var d = { table: 1, count: 8, duration: 120, round: 0, names: {}, progress: {}, link: "", perTable: false, revealAll: false, day: dayKey() };
+    var s = store.get(F_KEY, {}) || {};
+    Object.keys(d).forEach(function (k) { if (s[k] !== undefined && typeof s[k] === typeof d[k]) d[k] = s[k]; });
+    d.table = clamp(d.table | 0, 1, 99);
+    d.count = clamp(d.count | 0, 2, MAX_SEATS);
+    d.round = clamp(d.round | 0, 0, LAST);
+    if ([60, 90, 120, 150, 180].indexOf(d.duration) < 0) d.duration = 120;
+    if (d.day !== dayKey()) { d.progress = {}; d.day = dayKey(); }
+    return d;
+  })();
+  function saveFac() { store.set(F_KEY, fac); }
+
+  function order() {
+    var n = fac.count, start = fac.round % n, out = [];
+    for (var i = 0; i < n; i++) out.push(((start + i) % n) + 1);
+    return out;
+  }
+  function prog() {
+    var k = fac.table + "|" + fac.round;
+    var p = fac.progress[k];
+    if (!p) { p = fac.progress[k] = { done: [], current: order()[0] }; }
+    p.done = p.done.filter(function (s) { return s >= 1 && s <= fac.count; });
+    if (p.current === null || p.current < 1 || p.current > fac.count) p.current = firstOpen(p);
+    return p;
+  }
+  function firstOpen(p) {
+    var ord = order();
+    for (var i = 0; i < ord.length; i++) if (p.done.indexOf(ord[i]) < 0) return ord[i];
+    return null;
+  }
+  function nextAfter(p, seat) {
+    var ord = order(), i = ord.indexOf(seat), n = ord.length;
+    for (var k = 1; k <= n; k++) {
+      var s = ord[(i + k) % n];
+      if (s !== seat && p.done.indexOf(s) < 0) return s;
+    }
+    return null;
+  }
+  function seatName(seat) {
+    var t = fac.names[fac.table];
+    return (t && t[seat]) || "";
+  }
+
+  var facTimer = makeTimer(function (rem, t) {
+    $("#f-digits").textContent = fmtClock(rem);
+    $("#f-bar").style.width = (clamp(rem / (t.duration * 1000), 0, 1) * 100) + "%";
+    var box = $("#f-timer");
+    box.classList.toggle("warn", rem > 0 && rem <= 15000);
+    box.classList.toggle("over", rem <= 0);
+    $("#f-status").textContent = rem <= 0 ? "خلص الوقت. انتقل للمشارك التالي." : "";
+    $("#f-start").textContent = t.running ? "وقّف" : (t.elapsed() > 0 ? "كمّل" : "ابدأ");
+  }, function () { chime(); vibrate([220, 120, 220]); });
+
+  function showFac() { showView("fac"); renderFac(); }
+
+  function renderFac() {
+    var g = GROUPS[fac.round], p = prog(), ord = order();
+    setSuit(fac.round);
+
+    $("#f-table").textContent = fac.table;
+    $("#f-count").textContent = fac.count;
+    document.querySelectorAll("#f-dur button").forEach(function (b) {
+      b.setAttribute("aria-checked", String(Number(b.dataset.sec) === fac.duration));
+    });
+    $("#f-estimate").textContent = "وزّع أرقام من 1 لـ" + fac.count + " على المشاركين. كل جولة بتاخد تقريبًا " +
+      Math.round(fac.count * fac.duration / 60) + " دقيقة (" + fac.count + " × " + fmtDur(fac.duration) + ").";
+    if (facTimer.duration !== fac.duration) facTimer.setDuration(fac.duration);
+
+    // round tabs
+    var tabs = $("#round-tabs");
+    tabs.textContent = "";
+    GROUPS.forEach(function (gr, i) {
+      var b = el("button", "tab");
+      b.type = "button";
+      b.setAttribute("role", "tab");
+      b.setAttribute("aria-selected", String(i === fac.round));
+      b.style.setProperty("--tc", "var(--s" + (i + 1) + ")");
+      b.appendChild(el("span", "dot"));
+      b.appendChild(el("span", "num", String(i + 1)));
+      b.appendChild(el("span", null, gr.title));
+      b.addEventListener("click", function () {
+        if (i === fac.round) return;
+        fac.round = i; saveFac(); facTimer.reset(); renderFac();
+      });
+      tabs.appendChild(b);
+    });
+
+    // helpers
+    var hl = $("#helper-list");
+    hl.textContent = "";
+    g.helpers.forEach(function (h) { hl.appendChild(el("li", null, h)); });
+
+    // speaker
+    var live = p.current !== null;
+    $("#speaker-live").hidden = !live;
+    $("#sp-word").hidden = !live;
+    $("#f-timer").hidden = !live;
+    $("#f-controls").hidden = !live;
+    $("#round-done").hidden = live;
+    $("#sp-q").textContent = g.question;
+    if (live) {
+      $("#sp-seat").textContent = p.current;
+      $("#sp-name").textContent = seatName(p.current) || ("المشارك رقم " + p.current);
+      $("#sp-word").textContent = wordFor(fac.table, fac.round, p.current);
+    } else {
+      var lastRound = fac.round === LAST;
+      $("#round-done-text").textContent = lastRound ? "الكل حكى. خلصت كل الجولات، شكرًا!" : "الكل حكى بهالجولة.";
+      $("#f-next-round").hidden = lastRound;
+    }
+
+    $("#start-note").textContent = "بتبلّش هالجولة من رقم " + ord[0] + "، وبعدين بالترتيب. اكبس على رقم عشان تعطيه الدور.";
+    $("#toggle-words").textContent = fac.revealAll ? "خبّي الكلمات الجاية" : "اكشف كل الكلمات";
+
+    renderSeats(p, ord);
+  }
+
+  function renderSeats(p, ord) {
+    var list = $("#seat-list");
+    list.textContent = "";
+    var nxt = p.current !== null ? nextAfter(p, p.current) : null;
+    ord.forEach(function (seat) {
+      var isCur = seat === p.current, isDone = p.done.indexOf(seat) >= 0, isNext = seat === nxt;
+      var li = el("li", "seat-row" + (isCur ? " is-current" : "") + (isDone ? " is-done" : ""));
+
+      var pick = el("button", "seat-pick");
+      pick.type = "button";
+      pick.setAttribute("aria-label", "أعطِ الدور لرقم " + seat);
+      pick.appendChild(el("span", "seat-badge", String(seat)));
+      pick.addEventListener("click", function () {
+        var pp = prog();
+        pp.done = pp.done.filter(function (s) { return s !== seat; });
+        pp.current = seat;
+        saveFac(); facTimer.reset(); renderFac();
+      });
+
+      var mid = el("div", "seat-mid");
+      var inp = el("input", "seat-name");
+      inp.type = "text";
+      inp.maxLength = 30;
+      inp.placeholder = "اسم (اختياري)";
+      inp.value = seatName(seat);
+      inp.setAttribute("aria-label", "اسم صاحب رقم " + seat);
+      inp.addEventListener("input", function () {
+        var t = fac.names[fac.table] || (fac.names[fac.table] = {});
+        var v = inp.value.trim();
+        if (v) t[seat] = v; else delete t[seat];
+        saveFac();
+        if (prog().current === seat) $("#sp-name").textContent = v || ("المشارك رقم " + seat);
+      });
+      var showWord = fac.revealAll || isCur || isDone;
+      var w = el("span", "seat-word" + (showWord ? "" : " hidden-word"), showWord ? wordFor(fac.table, fac.round, seat) : "•••");
+      mid.appendChild(inp); mid.appendChild(w);
+
+      var pill = el("span", "pill");
+      if (isCur) { pill.classList.add("now"); pill.textContent = "هلّق"; }
+      else if (isDone) {
+        pill.classList.add("done");
+        pill.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+        pill.appendChild(document.createTextNode("حكى"));
+      }
+      else if (isNext) { pill.classList.add("next"); pill.textContent = "الجاي"; }
+
+      li.appendChild(pick); li.appendChild(mid); li.appendChild(pill);
+      list.appendChild(li);
+    });
+  }
+
+  // facilitator controls
+  document.querySelectorAll("[data-set]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var step = Number(b.dataset.step);
+      if (b.dataset.set === "table") fac.table = clamp(fac.table + step, 1, 99);
+      else fac.count = clamp(fac.count + step, 2, MAX_SEATS);
+      saveFac(); facTimer.reset(); renderFac(); drawQR();
+    });
+  });
+  document.querySelectorAll("#f-dur button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      fac.duration = Number(b.dataset.sec);
+      saveFac(); facTimer.setDuration(fac.duration); renderFac();
+    });
+  });
+  $("#f-start").addEventListener("click", function () {
+    unlockAudio();
+    if (facTimer.running) facTimer.pause(); else { facTimer.start(); keepAwake(); }
+  });
+  $("#f-reset").addEventListener("click", function () { facTimer.reset(); });
+  $("#f-next").addEventListener("click", function () {
+    var p = prog();
+    if (p.current === null) return;
+    if (p.done.indexOf(p.current) < 0) p.done.push(p.current);
+    p.current = nextAfter(p, p.current);
+    saveFac(); facTimer.reset(); renderFac();
+  });
+  $("#f-next-round").addEventListener("click", function () {
+    if (fac.round < LAST) { fac.round += 1; saveFac(); facTimer.reset(); renderFac(); try { window.scrollTo(0, 0); } catch (e) {} }
+  });
+  $("#f-redo").addEventListener("click", function () {
+    delete fac.progress[fac.table + "|" + fac.round];
+    saveFac(); facTimer.reset(); renderFac();
+  });
+  $("#toggle-words").addEventListener("click", function () { fac.revealAll = !fac.revealAll; saveFac(); renderFac(); });
+  $("#to-player").addEventListener("click", function () { location.hash = ""; route(); });
+
+  // ---- QR code ----
+  var qrLib = null;
+  function loadQRLib() {
+    if (window.QRious) return Promise.resolve();
+    if (qrLib) return qrLib;
+    qrLib = new Promise(function (res, rej) {
+      var s = document.createElement("script");
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js";
+      s.onload = function () { res(); };
+      s.onerror = function () { qrLib = null; rej(new Error("qr")); };
+      document.head.appendChild(s);
+    });
+    return qrLib;
+  }
+  function qrValue() {
+    var base = (fac.link || "").trim().replace(/#.*$/, "");
+    if (!/^https?:\/\/\S+$/i.test(base)) return "";
+    return fac.perTable ? base + "#table-" + fac.table : base;
+  }
+  function drawQR() {
+    var v = qrValue(), canvas = $("#qr-canvas"), empty = $("#qr-empty");
+    $("#qr-out").value = v;
+    if (!v) {
+      canvas.hidden = true; empty.hidden = false;
+      empty.textContent = fac.link ? "الرابط لازم يبلّش بـ https://" : "الصق الرابط وبيطلع الرمز هون.";
+      return;
+    }
+    if ($("#qr-panel").open === false) return;
+    loadQRLib().then(function () {
+      new window.QRious({ element: canvas, value: v, size: 544, padding: 24, level: "M", background: "#ffffff", foreground: "#111318" });
+      canvas.hidden = false; empty.hidden = true;
+    }).catch(function () {
+      canvas.hidden = true; empty.hidden = false;
+      empty.textContent = "ما قدرنا نحمّل مولّد الرمز. انسخ الرابط واعمل منه QR بأي موقع.";
+    });
+  }
+  (function initQR() {
+    var standalone = false;
+    try { standalone = window.self === window.top && /^https?:$/.test(location.protocol); } catch (e) {}
+    if (!fac.link && standalone) fac.link = location.origin + location.pathname;
+    $("#qr-link").value = fac.link;
+    $("#qr-per-table").checked = fac.perTable;
+    $("#qr-link").addEventListener("input", function (e) { fac.link = e.target.value.trim(); saveFac(); drawQR(); });
+    $("#qr-per-table").addEventListener("change", function (e) { fac.perTable = e.target.checked; saveFac(); drawQR(); });
+    $("#qr-panel").addEventListener("toggle", drawQR);
+    $("#qr-copy").addEventListener("click", function () {
+      var out = $("#qr-out"), btn = $("#qr-copy");
+      if (!out.value) return;
+      function done(msg) { btn.textContent = msg; setTimeout(function () { btn.textContent = "نسخ الرابط"; }, 1800); }
+      function fallback() { out.focus(); out.select(); done("الرابط محدّد، انسخه"); }
+      try {
+        navigator.clipboard.writeText(out.value).then(function () { done("انتسخ"); }, fallback);
+      } catch (e) { fallback(); }
+    });
+    drawQR();
+  })();
+
+  // ------------------------------------------------------------------
+  // Routing: "#facilitator" opens the facilitator screen,
+  // "#table-3" pre-fills table 3 for participants.
+  // ------------------------------------------------------------------
+  function route() {
+    var h = "";
+    try { h = decodeURIComponent((location.hash || "").replace(/^#/, "")); } catch (e) {}
+    if (!ptEl.hidden) { pTimer.reset(); ptEl.hidden = true; }
+    if (h === "facilitator") { showFac(); return; }
+    var m = /^table-(\d{1,2})$/.exec(h);
+    hashTable = m ? clamp(Number(m[1]), 1, 99) : null;
+    if (hashTable && player && player.table !== hashTable) { showJoin(); return; }
+    if (!player) { showJoin(); return; }
+    showPlay();
+  }
+  window.addEventListener("hashchange", route);
+  route();
+})();
+</script>
