@@ -1,15 +1,14 @@
-"""Printable table card with ONE QR code for the whole room.
+"""Printable table cards: ONE QR code for the whole room, numbered tables.
 
-Every table gets the same card: the QR (the app's link), three steps, and a
-seating diagram (the person facing the card is number 1, then clockwise).
-Two identical A5 cards per A4 page: print one page per two tables and cut
-along the dashed line.
+Every card carries the same QR (the app's link), the table number people
+type in, three steps, and a seating diagram (the person facing the card is
+number 1, then clockwise). Two A5 cards per A4 page, cut along the dashed line.
 
 Also writes the QR on its own (out/qr.png, out/qr.svg) for slides, posters
 and invitations.
 
     pip install qrcode pillow
-    python make_cards.py --url https://claude.ai/artifact/HF9xZzyCsDaFTbw6eo41fK
+    python make_cards.py --url https://mahdeeka.github.io/Mahdeeka/kalima-hikaya/ --tables 25
 
 Writes out/table-cards.html and prints it to out/table-cards.pdf with headless
 Chrome/Chromium (set CHROME=/path/to/chrome if it is not found).
@@ -61,26 +60,29 @@ def seating_svg(seats: int, color: str) -> str:
     return "".join(parts)
 
 
-def card(qr: str, seats: int, color: str) -> str:
+def card(n: int, qr: str, seats: int) -> str:
+    color = SUITS[(n - 1) % len(SUITS)]
     return f"""
   <div class="card" style="--c:{color}">
     <div class="col-info">
       <span class="logo">كلمة وراها حكاية</span>
+      <div class="table"><span class="table-label">طاولة</span><span class="table-num">{n}</span></div>
       <ol class="steps">
         <li>امسحوا الرمز بكاميرا التلفون.</li>
-        <li>اكتبوا اسمكم.</li>
-        <li>اختاروا رقمكم حسب مكانكم: اللي قدّام هالكرت <b>رقم 1</b>، وبعده مع عقارب الساعة.</li>
+        <li>اكتبوا اسمكم ورقم الطاولة: <b>{n}</b>.</li>
+        <li>رقمكم حسب مكانكم: اللي قدّام هالكرت <b>رقم 1</b>، وبعده مع عقارب الساعة.</li>
       </ol>
+      <p class="mgr">مدير الطاولة: اختار «مدير طاولة» بأول الشاشة.</p>
     </div>
     <div class="col-qr">{qr}<span class="scan">امسحوا الرمز</span></div>
     <div class="col-seat">{seating_svg(seats, color)}</div>
   </div>"""
 
 
-def build(url: str, pages: int, seats: int) -> str:
+def build(url: str, tables: int, seats: int) -> str:
     qr = qr_svg(url)
-    color = SUITS[0]
-    sheet = f'<section class="sheet">{card(qr, seats, color)}{card(qr, seats, color)}</section>'
+    cards = [card(n, qr, seats) for n in range(1, tables + 1)]
+    sheets = "".join(f'<section class="sheet">{"".join(cards[i:i + 2])}</section>' for i in range(0, len(cards), 2))
     return f"""<!doctype html>
 <html lang="ar" dir="rtl"><head><meta charset="utf-8">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&family=Lalezar&family=Readex+Pro:wght@400;600;700&display=swap">
@@ -89,23 +91,27 @@ def build(url: str, pages: int, seats: int) -> str:
 * {{ box-sizing: border-box }}
 body {{ margin: 0; font-family: "Readex Pro", "Noto Sans Arabic", sans-serif; color: #14161E }}
 .sheet {{ width: 210mm; height: 297mm; display: grid; grid-template-rows: 1fr 1fr; page-break-after: always; overflow: hidden }}
-.card {{ padding: 10mm; display: grid; grid-template-columns: 1fr 58mm 52mm; gap: 6mm; align-items: center; border-bottom: 0.4mm dashed #9AA1B5 }}
+.card {{ padding: 9mm; display: grid; grid-template-columns: 1fr 52mm 48mm; gap: 6mm; align-items: center; border-bottom: 0.4mm dashed #9AA1B5 }}
 .card:last-child {{ border-bottom: 0 }}
-.col-info {{ display: flex; flex-direction: column; gap: 6mm; min-width: 0 }}
-.logo {{ font-family: "Aref Ruqaa", serif; font-size: 13mm; line-height: 1.25; color: var(--c) }}
-.steps {{ margin: 0; padding-inline-start: 6mm; font-size: 4.6mm; line-height: 1.55; display: flex; flex-direction: column; gap: 2mm }}
+.col-info {{ display: flex; flex-direction: column; gap: 3mm; min-width: 0 }}
+.logo {{ font-family: "Aref Ruqaa", serif; font-size: 8.5mm; line-height: 1.2 }}
+.table {{ display: flex; align-items: baseline; gap: 3mm; color: var(--c) }}
+.table-label {{ font-family: "Lalezar", sans-serif; font-size: 11mm }}
+.table-num {{ font-family: "Lalezar", sans-serif; font-size: 30mm; line-height: .9 }}
+.steps {{ margin: 0; padding-inline-start: 5.5mm; font-size: 3.8mm; line-height: 1.5; display: flex; flex-direction: column; gap: 1.4mm }}
 .steps b {{ color: var(--c) }}
+.mgr {{ margin: 0; font-size: 3.3mm; color: #596074 }}
 .col-qr {{ display: flex; flex-direction: column; align-items: center; gap: 2mm }}
-.col-qr svg {{ width: 58mm; height: 58mm }}
-.scan {{ font-size: 4mm; font-weight: 600 }}
-.seating {{ width: 52mm; height: 52mm }}
-</style></head><body>{sheet * pages}</body></html>"""
+.col-qr svg {{ width: 52mm; height: 52mm }}
+.scan {{ font-size: 3.6mm; font-weight: 600 }}
+.seating {{ width: 48mm; height: 48mm }}
+</style></head><body>{sheets}</body></html>"""
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--url", required=True, help="public link of the app, without #")
-    ap.add_argument("--pages", type=int, default=1, help="pages in the PDF (2 identical cards per page)")
+    ap.add_argument("--tables", type=int, default=25, help="number of tables (2 cards per A4 page)")
     ap.add_argument("--seats", type=int, default=8)
     a = ap.parse_args()
     url = a.url.split("#")[0]
@@ -116,7 +122,7 @@ def main() -> None:
     (out / "qr.svg").write_text(qr_svg(url), encoding="utf-8")
 
     html_path = out / "table-cards.html"
-    html_path.write_text(build(url, a.pages, a.seats), encoding="utf-8")
+    html_path.write_text(build(url, a.tables, a.seats), encoding="utf-8")
     chrome = os.environ.get("CHROME") or next(
         (c for c in ("/opt/pw-browsers/chromium", shutil.which("chromium"), shutil.which("google-chrome"),
                      shutil.which("chromium-browser"),
@@ -127,7 +133,7 @@ def main() -> None:
     subprocess.run([chrome, "--headless", "--no-sandbox", "--disable-gpu", "--no-pdf-header-footer",
                     "--virtual-time-budget=20000", f"--print-to-pdf={out / 'table-cards.pdf'}",
                     html_path.resolve().as_uri()], check=True, capture_output=True)
-    print(f"wrote {out / 'table-cards.pdf'} ({a.pages} page(s), 2 identical cards each), {out / 'qr.png'}, {out / 'qr.svg'}")
+    print(f"wrote {out / 'table-cards.pdf'} ({a.tables} numbered tables, same QR, 2 per page), {out / 'qr.png'}, {out / 'qr.svg'}")
 
 
 if __name__ == "__main__":

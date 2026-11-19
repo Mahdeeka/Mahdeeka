@@ -178,6 +178,19 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 .end-head{display:flex;flex-direction:column;gap:8px}
 .end-title{font-family:var(--font-logo);font-size:clamp(34px,9vw,44px);font-weight:700}
 .top-actions{display:flex;gap:14px;flex:none}
+.role-switch{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--surface-2);border:1.5px solid var(--line);border-radius:14px;padding:5px}
+.role-switch button{appearance:none;border:0;background:none;border-radius:10px;min-height:46px;font-weight:700;font-size:16px;cursor:pointer;color:var(--muted)}
+.role-switch button[aria-pressed="true"]{background:var(--suit);color:var(--on-suit)}
+.role-note:empty{display:none}
+.field-label{font-weight:600;font-size:15px}
+.mg-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.mg-table{font-family:var(--font-word);font-weight:400;font-size:clamp(40px,11vw,54px);line-height:1.15;color:var(--suit-ink)}
+.say{background:var(--surface-2);border-radius:var(--r-sm);padding:12px 14px;font-weight:600;font-size:16.5px;line-height:1.65}
+.say::before{content:"قول للطاولة";display:block;font-size:12.5px;font-weight:700;color:var(--suit-ink);margin-bottom:2px}
+.mg-controls{display:flex;flex-wrap:wrap;gap:10px}
+.mg-controls .btn{flex:1 1 110px}
+.mg-name-in{margin-top:4px}
+.seat-me{font-size:12px;font-weight:700;color:var(--muted);margin-inline-start:6px}
 .card-qr{display:flex;flex-direction:column;align-items:center;gap:14px}
 .card-qr .qr-tile canvas{max-width:300px}
 .word-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
@@ -375,12 +388,26 @@ details.panel[open] > summary::after{content:"−"}
     </header>
 
     <form id="join-form" class="panel join-form" novalidate>
+      <div class="role-switch" role="group" aria-label="مين إنت؟">
+        <button type="button" id="role-player" aria-pressed="true">مشارك</button>
+        <button type="button" id="role-manager" aria-pressed="false">مدير طاولة</button>
+      </div>
+      <p class="help role-note" id="role-note"></p>
       <div class="field">
         <label for="in-name">شو اسمك؟</label>
         <input id="in-name" type="text" autocomplete="given-name" maxlength="30" placeholder="الاسم الأول بكفي" required>
       </div>
+      <div class="field">
+        <label for="in-table">رقم الطاولة</label>
+        <div class="stepper">
+          <button type="button" id="tbl-minus" aria-label="رقم طاولة أقل">−</button>
+          <input id="in-table" type="number" inputmode="numeric" min="1" max="99" placeholder="—">
+          <button type="button" id="tbl-plus" aria-label="رقم طاولة أكبر">+</button>
+        </div>
+        <p class="help" id="table-note">الرقم مكتوب على كرت الطاولة، أو اسأل مدير الطاولة.</p>
+      </div>
       <fieldset class="field">
-        <legend>رقمك = دورك بالحكي</legend>
+        <legend id="seat-legend">رقمك = دورك بالحكي</legend>
         <div class="seat-grid" id="seat-grid">
           <input type="radio" name="seat" id="seat-1" value="1"><label for="seat-1">1</label>
           <input type="radio" name="seat" id="seat-2" value="2"><label for="seat-2">2</label>
@@ -393,18 +420,26 @@ details.panel[open] > summary::after{content:"−"}
           <input type="radio" name="seat" id="seat-9" value="9"><label for="seat-9">9</label>
           <input type="radio" name="seat" id="seat-10" value="10"><label for="seat-10">10</label>
         </div>
-        <p class="help">اللي قدّام كرت الطاولة رقم 1، وبعده مع عقارب الساعة. شاشة القاعة بتنادي الأرقام بالدور، وكل رقم على الطاولة بتطلعله كلمة مختلفة.</p>
+        <p class="help">اللي قدّام كرت الطاولة رقم 1، وبعده مع عقارب الساعة. كل رقم على الطاولة بتطلعله كلمة مختلفة.</p>
       </fieldset>
+      <div class="field" id="count-field" hidden>
+        <span class="field-label" id="lbl-jcount">كم واحد على الطاولة؟ (مع المدير)</span>
+        <div class="stepper" role="group" aria-labelledby="lbl-jcount">
+          <button type="button" id="cnt-minus" aria-label="أقل">−</button>
+          <output id="in-count">8</output>
+          <button type="button" id="cnt-plus" aria-label="أكثر">+</button>
+        </div>
+      </div>
       <p class="form-error" id="join-error" role="alert" hidden></p>
-      <button class="btn btn-primary btn-big" type="submit">يلّا نبلّش</button>
+      <button class="btn btn-primary btn-big" type="submit" id="join-submit">يلّا نبلّش</button>
     </form>
 
     <ol class="steps">
-      <li>الميسّر بشرح الفعالية، وكل طاولة بتعدّ من 1 لـ8.</li>
-      <li>لما تبلّش الجولة، اكبس «اخلط» وبتطلعلك كلمة وسؤال.</li>
-      <li>كل واحد بدوره بيحكي عن كلمته، وبعدين نقاش مفتوح على الطاولة.</li>
+      <li>امسحوا الرمز، واكتبوا اسمكم ورقم طاولتكم.</li>
+      <li>بكل جولة اكبس «اخلط» وبتطلعلك كلمة وسؤال.</li>
+      <li>كل واحد بدوره بيحكي، ومدير الطاولة بيدير الأدوار والوقت.</li>
     </ol>
-    <footer class="foot"><a class="quiet-link" href="#facilitator">شاشة الميسّر</a></footer>
+    <footer class="foot"><a class="quiet-link" href="#stage">شاشة القاعة (للبروجكتر)</a></footer>
   </main>
 
   <!-- ================= PLAY ================= -->
@@ -514,123 +549,111 @@ details.panel[open] > summary::after{content:"−"}
     <div class="row"><button class="btn btn-secondary" id="card-back" type="button">رجوع للجولات</button></div>
   </main>
 
-  <!-- ================= FACILITATOR ================= -->
-  <main id="view-fac" class="view wide" hidden>
-    <header class="fac-head">
+  <!-- ================= TABLE MANAGER ================= -->
+  <main id="view-fac" class="view" hidden>
+    <header class="mg-head">
       <div>
-        <p class="eyebrow">كلمة وراها حكاية</p>
-        <h1 class="fac-title">شاشة الميسّر</h1>
+        <p class="eyebrow">مدير الطاولة · <span id="mg-who"></span></p>
+        <h1 class="mg-table" id="mg-table">طاولة 1</h1>
       </div>
-      <div class="row">
-        <a class="btn btn-secondary" href="#stage">شاشة القاعة</a>
-        <button class="btn btn-secondary" id="to-player" type="button">شاشة المشاركين</button>
+      <div class="top-actions">
+        <button class="btn-text" id="mg-card" type="button">بطاقتي</button>
+        <button class="btn-text" id="mg-edit" type="button">تغيير</button>
       </div>
     </header>
 
-    <section class="panel settings" aria-label="إعدادات الطاولة">
-      <div class="setting">
-        <span class="setting-label" id="lbl-count">عدد المشاركين</span>
-        <div class="stepper" role="group" aria-labelledby="lbl-count">
-          <button type="button" data-set="count" data-step="-1" aria-label="مشارك أقل">−</button>
-          <output id="f-count">8</output>
-          <button type="button" data-set="count" data-step="1" aria-label="مشارك أكثر">+</button>
-        </div>
+    <nav class="round-tabs" id="mg-tabs" aria-label="فقرات الفعالية"></nav>
+
+    <section class="panel speaker" aria-labelledby="mg-title">
+      <div>
+        <p class="eyebrow" id="mg-eyebrow"></p>
+        <h2 class="round-title" id="mg-title"></h2>
       </div>
-      <div class="setting">
-        <span class="setting-label" id="lbl-dur">وقت كل مشارك</span>
-        <div class="seg" id="f-dur" role="radiogroup" aria-labelledby="lbl-dur">
-          <button type="button" role="radio" data-sec="60">1:00</button>
-          <button type="button" role="radio" data-sec="90">1:30</button>
-          <button type="button" role="radio" data-sec="120">2:00</button>
-          <button type="button" role="radio" data-sec="150">2:30</button>
-          <button type="button" role="radio" data-sec="180">3:00</button>
+      <p class="say" id="mg-say"></p>
+      <div id="mg-turn" hidden>
+        <div class="speaker-head">
+          <span class="seat-badge big" id="mg-seat">1</span>
+          <div class="sp-text"><span class="eyebrow">هلّق دور</span><strong id="mg-name"></strong></div>
         </div>
+        <input id="mg-name-in" class="mg-name-in" type="text" maxlength="30" placeholder="اكتب اسمه وهو بيعرّف عن حاله" aria-label="اسم صاحب الدور" hidden>
       </div>
-      <p class="help settings-help" id="f-estimate"></p>
+      <span class="word-chip" id="mg-word" hidden></span>
+      <div class="timer" id="mg-timer" hidden>
+        <div class="timer-digits digits" id="mg-digits">1:30</div>
+        <div class="bar"><span id="mg-bar"></span></div>
+        <div class="timer-status" id="mg-status" aria-live="polite"></div>
+      </div>
+      <div class="mg-controls">
+        <button class="btn btn-primary" id="mg-main" type="button">ابدأ</button>
+        <button class="btn btn-secondary" id="mg-skip" type="button">التالي</button>
+        <button class="btn btn-secondary" id="mg-reset" type="button">من جديد</button>
+      </div>
     </section>
 
-    <nav class="round-tabs" id="round-tabs" role="tablist" aria-label="المجموعات"></nav>
+    <section class="panel helpers" id="mg-helpers" hidden>
+      <h3>أسئلة مساعدة</h3>
+      <p class="help">إلك بس. استعملها إذا حدا علق، أو بالنقاش المفتوح.</p>
+      <ul class="helper-list" id="mg-helper-list"></ul>
+    </section>
 
-    <div class="fac-grid">
-      <section class="panel speaker" aria-labelledby="sp-name">
-        <div id="speaker-live">
-          <div class="speaker-head">
-            <span class="seat-badge big" id="sp-seat">1</span>
-            <div class="sp-text">
-              <span class="eyebrow">هلّق دور</span>
-              <strong id="sp-name"></strong>
-            </div>
-          </div>
-        </div>
-        <span class="word-chip" id="sp-word"></span>
-        <p class="sp-q" id="sp-q"></p>
-        <div class="timer" id="f-timer">
-          <div class="timer-digits digits" id="f-digits">2:00</div>
-          <div class="bar"><span id="f-bar"></span></div>
-          <div class="timer-status" id="f-status" aria-live="polite"></div>
-        </div>
-        <div class="timer-controls" id="f-controls">
-          <button class="btn btn-primary" id="f-start" type="button">ابدأ</button>
-          <button class="btn btn-secondary" id="f-reset" type="button">من جديد</button>
-          <button class="btn btn-secondary" id="f-next" type="button">التالي
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
-          </button>
-        </div>
-        <div class="round-done" id="round-done" hidden>
-          <p id="round-done-text">الكل حكى بهالجولة.</p>
-          <div class="row">
-            <button class="btn btn-primary" id="f-next-round" type="button">للجولة التالية</button>
-            <button class="btn btn-secondary" id="f-redo" type="button">عيد الجولة من الأول</button>
-          </div>
-        </div>
-      </section>
-
-      <div class="side">
-        <section class="panel helpers">
-          <h3>أسئلة مساعدة</h3>
-          <p class="help">إلك بس. مش ظاهرة عند المشاركين. استعملها إذا بدك توسّع النقاش.</p>
-          <ul class="helper-list" id="helper-list"></ul>
-        </section>
-        <section class="panel seats">
-          <div class="seats-head">
-            <h3>الطاولة بهالجولة</h3>
-            <button class="btn-text" id="toggle-words" type="button">اكشف كل الكلمات</button>
-          </div>
-          <p class="help" id="start-note"></p>
-          <ol class="seat-list" id="seat-list"></ol>
-        </section>
+    <section class="panel seats">
+      <div class="seats-head">
+        <h3>الطاولة</h3>
+        <button class="btn-text" id="mg-reveal" type="button">اكشف كل الكلمات</button>
       </div>
-    </div>
+      <p class="help" id="mg-seat-note"></p>
+      <ol class="seat-list" id="mg-seats"></ol>
+    </section>
 
-    <details class="panel">
-      <summary>ملاحظات للميسّر</summary>
+    <details class="panel" id="mg-qr-panel">
+      <summary>رمز QR لطاولتي</summary>
       <div class="details-body">
-        <ul class="notes-list">
-          <li>مش ضروري كل مشارك يجاوب عن كل الأسئلة المساعدة. السؤال الرئيسي بكفي، والباقي حسب سير النقاش.</li>
-          <li>إذا حدا طلعله كلمة ما بتعبّر عنه، عادي يحكي ليش ما بتناسبه.</li>
-          <li>كل مشارك إله وقت محدّد للإجابة، حسب المؤقّت الموجود بالرابط.</li>
-          <li>إذا حدا شارك بتجربة مثيرة للاهتمام، ممكن نسأل إذا حدا ثاني مرّ بتجربة مشابهة، إذا الوقت بسمح.</li>
-          <li>مش مطلوب من المشاركين يحكوا تفاصيل شخصية أو حسّاسة عن مكان شغلهم.</li>
-        </ul>
+        <p class="help">اللي بيمسح هالرمز من تلفونك، رقم الطاولة بتعبّى عنده لحاله.</p>
+        <div class="qr-tile">
+          <canvas id="mg-qr" width="520" height="520" hidden></canvas>
+          <p class="qr-empty" id="mg-qr-empty"></p>
+        </div>
+        <input id="mg-qr-out" type="text" dir="ltr" class="qr-url" readonly aria-label="رابط الطاولة">
       </div>
     </details>
 
-    <details class="panel" id="qr-panel">
-      <summary>رمز QR للمشاركين (واحد لكل الطاولات)</summary>
+    <details class="panel">
+      <summary>إعدادات الطاولة</summary>
       <div class="details-body">
-        <div class="qr-grid">
-          <div class="qr-form">
-            <label for="qr-link"><strong>رابط الصفحة</strong></label>
-            <input id="qr-link" type="url" dir="ltr" inputmode="url" placeholder="https://claude.ai/…" autocomplete="off">
-            <p class="help">انسخ الرابط العام لهالصفحة (من زر المشاركة) والصقه هون.</p>
-            <input id="qr-out" type="text" dir="ltr" class="qr-url" readonly aria-label="الرابط اللي بالرمز">
-            <div class="row"><button class="btn btn-secondary" id="qr-copy" type="button">نسخ الرابط</button></div>
-          </div>
-          <div class="qr-tile">
-            <canvas id="qr-canvas" width="544" height="544" hidden></canvas>
-            <p class="qr-empty" id="qr-empty">الصق الرابط وبيطلع الرمز هون.</p>
+        <div class="setting">
+          <span class="setting-label" id="lbl-mcount">كم واحد على الطاولة</span>
+          <div class="stepper" role="group" aria-labelledby="lbl-mcount">
+            <button type="button" data-mset="-1" aria-label="أقل">−</button>
+            <output id="mg-count">8</output>
+            <button type="button" data-mset="1" aria-label="أكثر">+</button>
           </div>
         </div>
+        <div class="setting">
+          <span class="setting-label" id="lbl-mdur">وقت كل مشارك بالجولات</span>
+          <div class="seg" id="mg-dur" role="radiogroup" aria-labelledby="lbl-mdur">
+            <button type="button" role="radio" data-sec="60">1:00</button>
+            <button type="button" role="radio" data-sec="90">1:30</button>
+            <button type="button" role="radio" data-sec="120">2:00</button>
+            <button type="button" role="radio" data-sec="150">2:30</button>
+            <button type="button" role="radio" data-sec="180">3:00</button>
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="mg-auto"> تشغيل تلقائي: بينتقل للي بعده 5 ثواني بعد ما يخلص الوقت</label>
+        <p class="help" id="mg-estimate"></p>
+      </div>
+    </details>
+
+    <details class="panel">
+      <summary>ملاحظات للمدير</summary>
+      <div class="details-body">
+        <ul class="notes-list">
+          <li>السؤال الرئيسي بكفي. الأسئلة المساعدة بس إذا حدا علق أو بدك توسّع النقاش.</li>
+          <li>إذا حدا طلعله كلمة ما بتعبّر عنه، عادي يحكي ليش ما بتناسبه.</li>
+          <li>بالنقاش المفتوح: إذا حدا حكى تجربة مثيرة، اسأل إذا حدا ثاني مرّ بتجربة مشابهة.</li>
+          <li>مش مطلوب من حدا يحكي تفاصيل شخصية أو حسّاسة عن مكان شغله.</li>
+          <li>إذا اثنين طلعلهم نفس الكلمة، واحد منهم اختار رقم أو طاولة غلط. خلّيه يكبس «تغيير» ويصلّح.</li>
+          <li>إذا تلفونك وقع، أي حدا بيقدر يفتح «مدير طاولة» بنفس رقم الطاولة وبيطلعله نفس الكلمات.</li>
+        </ul>
       </div>
     </details>
   </main>
@@ -706,10 +729,10 @@ details.panel[open] > summary::after{content:"−"}
               <button type="button" role="radio" data-sec="180">3:00</button>
             </div>
           </div>
+          <label class="check"><input type="checkbox" id="st-managed"> في مدير لكل طاولة: الشاشة بتعدّ وقت الفقرة كلها، والمدراء بيديروا الأدوار</label>
           <label class="check"><input type="checkbox" id="st-auto"> تشغيل تلقائي: الشاشة بتنتقل لحالها (5 ثواني بعد ما يخلص الوقت)</label>
           <p class="help" id="st-estimate"></p>
           <p class="help">مفاتيح: مسافة = ابدأ/وقّف، ← = التالي، R = من جديد، F = ملء الشاشة.</p>
-          <a href="#facilitator">شاشة ميسّر الطاولة</a>
         </div>
       </details>
     </footer>
@@ -897,7 +920,7 @@ details.panel[open] > summary::after{content:"−"}
     };
   }
   function dealOrder(table, round) {
-    var r = rng(hashStr("kwh|" + dayKey() + "|r" + round));
+    var r = rng(hashStr("kwh|" + dayKey() + "|t" + table + "|r" + round));
     var idx = GROUPS[round].words.map(function (_, i) { return i; });
     for (var i = idx.length - 1; i > 0; i--) {
       var j = Math.floor(r() * (i + 1));
@@ -959,8 +982,7 @@ details.panel[open] > summary::after{content:"−"}
   function sanitizePlayer(p) {
     if (!p || typeof p !== "object") return null;
     if (typeof p.name !== "string" || !p.name.trim()) return null;
-    if (!(p.seat >= 1 && p.seat <= MAX_SEATS)) return null;
-    p.table = 1;
+    if (!(p.seat >= 1 && p.seat <= MAX_SEATS) || !(p.table >= 1 && p.table <= 99)) return null;
     if (p.day !== dayKey() || !Array.isArray(p.revealed) || p.revealed.length !== GROUPS.length) {
       var f = freshProgress();
       p.day = f.day; p.round = f.round; p.maxRound = f.maxRound; p.revealed = f.revealed;
@@ -971,15 +993,35 @@ details.panel[open] > summary::after{content:"−"}
   }
   function savePlayer() { store.set(P_KEY, player); }
 
-  // ---- join ----
+  // ---- join (participant or table manager) ----
   var joinForm = $("#join-form");
-  var inName = $("#in-name"), seatGrid = $("#seat-grid");
+  var inName = $("#in-name"), inTable = $("#in-table"), seatGrid = $("#seat-grid");
+  var ROLE_KEY = "kwh.role.v1";
+  var role = store.get(ROLE_KEY, "player") === "manager" ? "manager" : "player";
+  var joinRole = role, joinCount = 8, hashTable = null;
 
-  function showJoin() {
+  function setJoinRole(r) {
+    joinRole = r;
+    var m = r === "manager";
+    $("#role-player").setAttribute("aria-pressed", String(!m));
+    $("#role-manager").setAttribute("aria-pressed", String(m));
+    $("#count-field").hidden = !m;
+    $("#seat-legend").textContent = m ? "رقمك إنت على الطاولة (المدير كمان بيشارك)" : "رقمك = دورك بالحكي";
+    $("#join-submit").textContent = m ? "افتح شاشة المدير" : "يلّا نبلّش";
+    $("#role-note").textContent = m ? "مدير الطاولة بيدير الأدوار والمؤقّت، وبيشوف كلمة كل واحد والأسئلة المساعدة." : "";
+  }
+  function showJoin(r) {
+    var want = r || joinRole;
+    var src = want === "manager" ? (mgr || player) : (player || mgr);
     setSuit(0);
-    inName.value = player ? player.name : "";
-    var s = player ? player.seat : 0;
+    inName.value = src ? src.name : "";
+    inTable.value = hashTable || (src && src.table) || "";
+    $("#table-note").textContent = hashTable ? "رقم الطاولة إجا من رمز الطاولة." : "الرقم مكتوب على كرت الطاولة، أو اسأل مدير الطاولة.";
+    var s = src ? src.seat : 0;
     seatGrid.querySelectorAll("input").forEach(function (i) { i.checked = Number(i.value) === s; });
+    joinCount = (mrun && mrun.st.count) || 8;
+    $("#in-count").textContent = joinCount;
+    setJoinRole(want);
     $("#join-error").hidden = true;
     showView("join");
   }
@@ -988,19 +1030,42 @@ details.panel[open] > summary::after{content:"−"}
     e.textContent = msg; e.hidden = false;
     if (focusEl) focusEl.focus();
   }
+  $("#role-player").addEventListener("click", function () { setJoinRole("player"); });
+  $("#role-manager").addEventListener("click", function () { setJoinRole("manager"); });
+  $("#tbl-minus").addEventListener("click", function () { inTable.value = clamp((parseInt(inTable.value, 10) || 1) - 1, 1, 99); });
+  $("#tbl-plus").addEventListener("click", function () { inTable.value = clamp((parseInt(inTable.value, 10) || 0) + 1, 1, 99); });
+  $("#cnt-minus").addEventListener("click", function () { joinCount = clamp(joinCount - 1, 2, MAX_SEATS); $("#in-count").textContent = joinCount; });
+  $("#cnt-plus").addEventListener("click", function () { joinCount = clamp(joinCount + 1, 2, MAX_SEATS); $("#in-count").textContent = joinCount; });
 
   joinForm.addEventListener("submit", function (ev) {
     ev.preventDefault();
     var name = inName.value.trim().replace(/\s+/g, " ").slice(0, 30);
+    var table = parseInt(inTable.value, 10);
     var seatEl = seatGrid.querySelector("input:checked");
+    var m = joinRole === "manager";
     if (!name) return joinError("اكتب اسمك عشان نبلّش.", inName);
-    if (!seatEl) return joinError("اختار رقمك على الطاولة. الميسّر بعطيك إياه.");
+    if (!inTable.value.trim()) return joinError("اكتب رقم الطاولة. الرقم مكتوب على كرت الطاولة.", inTable);
+    if (!(table >= 1 && table <= 99)) return joinError("رقم الطاولة لازم يكون بين 1 و-99.", inTable);
+    if (!seatEl) return joinError(m ? "اختار رقمك إنت على الطاولة." : "اختار رقمك: اللي قدّام كرت الطاولة رقم 1، وبعده مع عقارب الساعة.");
     var seat = Number(seatEl.value);
-    var changed = !player || player.seat !== seat;
+    if (m && seat > joinCount) return joinError("رقمك (" + seat + ") أكبر من عدد الناس على الطاولة (" + joinCount + ").");
+    role = joinRole;
+    store.set(ROLE_KEY, role);
+    if (m) {
+      var tableChanged = !mgr || mgr.table !== table;
+      mgr = { name: name, table: table, seat: seat, names: (mgr && mgr.names) || {} };
+      saveMgr();
+      mrun.st.count = joinCount;
+      if (tableChanged) { mrun.st.seg = 0; mrun.st.done = []; mrun.st.current = 0; mrun.st.phase = "ready"; }
+      mrun.save();
+      showManager();
+      return;
+    }
+    var changed = !player || player.seat !== seat || player.table !== table;
     var base = player || {};
-    base.name = name; base.table = 1; base.seat = seat;
+    base.name = name; base.table = table; base.seat = seat;
     if (!player) { var f = freshProgress(); base.day = f.day; base.round = 0; base.maxRound = 0; base.revealed = f.revealed; }
-    else if (changed) { base.revealed = freshProgress().revealed; } // new seat = new words; keep the round
+    else if (changed) { base.revealed = freshProgress().revealed; } // new seat or table = new words; keep the round
     player = sanitizePlayer(base);
     savePlayer();
     showPlay();
@@ -1017,7 +1082,7 @@ details.panel[open] > summary::after{content:"−"}
     setSuit(r);
     $("#p-avatar").textContent = player.name.charAt(0);
     $("#p-name").textContent = player.name;
-    $("#p-meta").textContent = "رقم " + player.seat;
+    $("#p-meta").textContent = "طاولة " + player.table + " · رقم " + player.seat;
 
     var pips = $("#pips");
     pips.textContent = "";
@@ -1117,12 +1182,12 @@ details.panel[open] > summary::after{content:"−"}
       showEnd();
     }
   });
-  $("#btn-edit").addEventListener("click", showJoin);
+  $("#btn-edit").addEventListener("click", function () { showJoin("player"); });
 
   // ---- end ----
   function showEnd() {
     setSuit(LAST);
-    $("#end-who").textContent = player.name;
+    $("#end-who").textContent = player.name + " · طاولة " + player.table;
     var list = $("#end-list");
     list.textContent = "";
     GROUPS.forEach(function (g, i) {
@@ -1180,213 +1245,20 @@ details.panel[open] > summary::after{content:"−"}
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !ptEl.hidden) closePTimer(); });
 
   // ------------------------------------------------------------------
-  // Facilitator
+  // Shared link + QR codes (qrcode-generator, UTF-8 so Arabic survives)
   // ------------------------------------------------------------------
-  var F_KEY = "kwh.facilitator.v1";
-  var fac = (function () {
-    var d = { table: 1, count: 8, duration: 90, round: 0, names: {}, progress: {}, link: "", perTable: false, revealAll: false, day: dayKey() };
-    var s = store.get(F_KEY, {}) || {};
-    Object.keys(d).forEach(function (k) { if (s[k] !== undefined && typeof s[k] === typeof d[k]) d[k] = s[k]; });
-    d.table = 1;
-    d.count = clamp(d.count | 0, 2, MAX_SEATS);
-    d.round = clamp(d.round | 0, 0, LAST);
-    if ([60, 90, 120, 150, 180].indexOf(d.duration) < 0) d.duration = 120;
-    if (d.day !== dayKey()) { d.progress = {}; d.day = dayKey(); }
-    return d;
+  var LINK_KEY = "kwh.link.v1";
+  var appLink = (function () {
+    var saved = store.get(LINK_KEY, "");
+    if (saved) return saved;
+    var standalone = false;
+    try { standalone = window.self === window.top && /^https?:$/.test(location.protocol); } catch (e) {}
+    return standalone ? location.origin + location.pathname : PUBLIC_LINK;
   })();
-  function saveFac() { store.set(F_KEY, fac); }
-
-  function order() {
-    var n = fac.count, start = fac.round % n, out = [];
-    for (var i = 0; i < n; i++) out.push(((start + i) % n) + 1);
-    return out;
+  function baseLink() {
+    var b = (appLink || "").trim().replace(/#.*$/, "");
+    return /^https?:\/\/\S+$/i.test(b) ? b : "";
   }
-  function prog() {
-    var k = fac.table + "|" + fac.round;
-    var p = fac.progress[k];
-    if (!p) { p = fac.progress[k] = { done: [], current: order()[0] }; }
-    p.done = p.done.filter(function (s) { return s >= 1 && s <= fac.count; });
-    if (p.current === null || p.current < 1 || p.current > fac.count) p.current = firstOpen(p);
-    return p;
-  }
-  function firstOpen(p) {
-    var ord = order();
-    for (var i = 0; i < ord.length; i++) if (p.done.indexOf(ord[i]) < 0) return ord[i];
-    return null;
-  }
-  function nextAfter(p, seat) {
-    var ord = order(), i = ord.indexOf(seat), n = ord.length;
-    for (var k = 1; k <= n; k++) {
-      var s = ord[(i + k) % n];
-      if (s !== seat && p.done.indexOf(s) < 0) return s;
-    }
-    return null;
-  }
-  function seatName(seat) {
-    var t = fac.names[fac.table];
-    return (t && t[seat]) || "";
-  }
-
-  var facTimer = makeTimer(function (rem, t) {
-    $("#f-digits").textContent = fmtClock(rem);
-    $("#f-bar").style.width = (clamp(rem / (t.duration * 1000), 0, 1) * 100) + "%";
-    var box = $("#f-timer");
-    box.classList.toggle("warn", rem > 0 && rem <= 15000);
-    box.classList.toggle("over", rem <= 0);
-    $("#f-status").textContent = rem <= 0 ? "خلص الوقت. انتقل للمشارك التالي." : "";
-    $("#f-start").textContent = t.running ? "وقّف" : (t.elapsed() > 0 ? "كمّل" : "ابدأ");
-  }, function () { chime(); vibrate([220, 120, 220]); });
-
-  function showFac() { showView("fac"); renderFac(); }
-
-  function renderFac() {
-    var g = GROUPS[fac.round], p = prog(), ord = order();
-    setSuit(fac.round);
-
-    $("#f-count").textContent = fac.count;
-    document.querySelectorAll("#f-dur button").forEach(function (b) {
-      b.setAttribute("aria-checked", String(Number(b.dataset.sec) === fac.duration));
-    });
-    $("#f-estimate").textContent = "كل طاولة بتعدّ من 1 لـ" + fac.count + " مع عقارب الساعة، بادئين من اللي قدّام كرت الطاولة. كل جولة بتاخد تقريبًا " +
-      Math.round(fac.count * fac.duration / 60) + " دقيقة (" + fac.count + " × " + fmtDur(fac.duration) + ").";
-    if (facTimer.duration !== fac.duration) facTimer.setDuration(fac.duration);
-
-    // round tabs
-    var tabs = $("#round-tabs");
-    tabs.textContent = "";
-    GROUPS.forEach(function (gr, i) {
-      var b = el("button", "tab");
-      b.type = "button";
-      b.setAttribute("role", "tab");
-      b.setAttribute("aria-selected", String(i === fac.round));
-      b.style.setProperty("--tc", "var(--s" + (i + 1) + ")");
-      b.appendChild(el("span", "dot"));
-      b.appendChild(el("span", "num", String(i + 1)));
-      b.appendChild(el("span", null, gr.title));
-      b.addEventListener("click", function () {
-        if (i === fac.round) return;
-        fac.round = i; saveFac(); facTimer.reset(); renderFac();
-      });
-      tabs.appendChild(b);
-    });
-
-    // helpers
-    var hl = $("#helper-list");
-    hl.textContent = "";
-    g.helpers.forEach(function (h) { hl.appendChild(el("li", null, h)); });
-
-    // speaker
-    var live = p.current !== null;
-    $("#speaker-live").hidden = !live;
-    $("#sp-word").hidden = !live;
-    $("#f-timer").hidden = !live;
-    $("#f-controls").hidden = !live;
-    $("#round-done").hidden = live;
-    $("#sp-q").textContent = g.question;
-    if (live) {
-      $("#sp-seat").textContent = p.current;
-      $("#sp-name").textContent = seatName(p.current) || ("المشارك رقم " + p.current);
-      $("#sp-word").textContent = wordFor(fac.table, fac.round, p.current);
-    } else {
-      var lastRound = fac.round === LAST;
-      $("#round-done-text").textContent = lastRound ? "الكل حكى. خلصت كل الجولات، شكرًا!" : "الكل حكى بهالجولة.";
-      $("#f-next-round").hidden = lastRound;
-    }
-
-    $("#start-note").textContent = "بتبلّش هالجولة من رقم " + ord[0] + "، وبعدين بالترتيب. اكبس على رقم عشان تعطيه الدور.";
-    $("#toggle-words").textContent = fac.revealAll ? "خبّي الكلمات الجاية" : "اكشف كل الكلمات";
-
-    renderSeats(p, ord);
-  }
-
-  function renderSeats(p, ord) {
-    var list = $("#seat-list");
-    list.textContent = "";
-    var nxt = p.current !== null ? nextAfter(p, p.current) : null;
-    ord.forEach(function (seat) {
-      var isCur = seat === p.current, isDone = p.done.indexOf(seat) >= 0, isNext = seat === nxt;
-      var li = el("li", "seat-row" + (isCur ? " is-current" : "") + (isDone ? " is-done" : ""));
-
-      var pick = el("button", "seat-pick");
-      pick.type = "button";
-      pick.setAttribute("aria-label", "أعطِ الدور لرقم " + seat);
-      pick.appendChild(el("span", "seat-badge", String(seat)));
-      pick.addEventListener("click", function () {
-        var pp = prog();
-        pp.done = pp.done.filter(function (s) { return s !== seat; });
-        pp.current = seat;
-        saveFac(); facTimer.reset(); renderFac();
-      });
-
-      var mid = el("div", "seat-mid");
-      var inp = el("input", "seat-name");
-      inp.type = "text";
-      inp.maxLength = 30;
-      inp.placeholder = "اسم (اختياري)";
-      inp.value = seatName(seat);
-      inp.setAttribute("aria-label", "اسم صاحب رقم " + seat);
-      inp.addEventListener("input", function () {
-        var t = fac.names[fac.table] || (fac.names[fac.table] = {});
-        var v = inp.value.trim();
-        if (v) t[seat] = v; else delete t[seat];
-        saveFac();
-        if (prog().current === seat) $("#sp-name").textContent = v || ("المشارك رقم " + seat);
-      });
-      var showWord = fac.revealAll || isCur || isDone;
-      var w = el("span", "seat-word" + (showWord ? "" : " hidden-word"), showWord ? wordFor(fac.table, fac.round, seat) : "•••");
-      mid.appendChild(inp); mid.appendChild(w);
-
-      var pill = el("span", "pill");
-      if (isCur) { pill.classList.add("now"); pill.textContent = "هلّق"; }
-      else if (isDone) {
-        pill.classList.add("done");
-        pill.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
-        pill.appendChild(document.createTextNode("حكى"));
-      }
-      else if (isNext) { pill.classList.add("next"); pill.textContent = "الجاي"; }
-
-      li.appendChild(pick); li.appendChild(mid); li.appendChild(pill);
-      list.appendChild(li);
-    });
-  }
-
-  // facilitator controls
-  document.querySelectorAll("[data-set]").forEach(function (b) {
-    b.addEventListener("click", function () {
-      var step = Number(b.dataset.step);
-      fac.count = clamp(fac.count + step, 2, MAX_SEATS);
-      saveFac(); facTimer.reset(); renderFac(); drawQR();
-    });
-  });
-  document.querySelectorAll("#f-dur button").forEach(function (b) {
-    b.addEventListener("click", function () {
-      fac.duration = Number(b.dataset.sec);
-      saveFac(); facTimer.setDuration(fac.duration); renderFac();
-    });
-  });
-  $("#f-start").addEventListener("click", function () {
-    unlockAudio();
-    if (facTimer.running) facTimer.pause(); else { facTimer.start(); keepAwake(); }
-  });
-  $("#f-reset").addEventListener("click", function () { facTimer.reset(); });
-  $("#f-next").addEventListener("click", function () {
-    var p = prog();
-    if (p.current === null) return;
-    if (p.done.indexOf(p.current) < 0) p.done.push(p.current);
-    p.current = nextAfter(p, p.current);
-    saveFac(); facTimer.reset(); renderFac();
-  });
-  $("#f-next-round").addEventListener("click", function () {
-    if (fac.round < LAST) { fac.round += 1; saveFac(); facTimer.reset(); renderFac(); try { window.scrollTo(0, 0); } catch (e) {} }
-  });
-  $("#f-redo").addEventListener("click", function () {
-    delete fac.progress[fac.table + "|" + fac.round];
-    saveFac(); facTimer.reset(); renderFac();
-  });
-  $("#toggle-words").addEventListener("click", function () { fac.revealAll = !fac.revealAll; saveFac(); renderFac(); });
-  $("#to-player").addEventListener("click", function () { location.hash = ""; route(); });
-
-  // ---- QR codes (qrcode-generator, UTF-8 so Arabic names survive) ----
   var qrLib = null;
   function loadQRLib() {
     if (window.qrcode) return Promise.resolve();
@@ -1416,15 +1288,10 @@ details.panel[open] > summary::after{content:"−"}
       if (qr.isDark(r, c)) ctx.fillRect((c + quiet) * scale, (r + quiet) * scale, scale, scale);
     }
   }
-  function baseLink() {
-    var b = (fac.link || "").trim().replace(/#.*$/, "");
-    return /^https?:\/\/\S+$/i.test(b) ? b : "";
-  }
-  function qrValue() { return baseLink(); }
   function drawQRTo(canvas, empty, value, size) {
     if (!value) {
       canvas.hidden = true; empty.hidden = false;
-      empty.textContent = fac.link ? "الرابط لازم يبلّش بـ https://" : "الصق رابط الصفحة وبيطلع الرمز هون.";
+      empty.textContent = "الصق رابط الصفحة وبيطلع الرمز هون.";
       return;
     }
     loadQRLib().then(function () {
@@ -1432,43 +1299,9 @@ details.panel[open] > summary::after{content:"−"}
       canvas.hidden = false; empty.hidden = true;
     }).catch(function () {
       canvas.hidden = true; empty.hidden = false;
-      empty.textContent = "ما قدرنا نحمّل مولّد الرمز. انسخ الرابط واعمل منه QR بأي موقع.";
+      empty.textContent = "ما قدرنا نحمّل مولّد الرمز. تأكّد إنه في إنترنت.";
     });
   }
-  function drawQR() {
-    var v = qrValue();
-    $("#qr-out").value = v;
-    if (v && $("#qr-panel").open === false) return;
-    drawQRTo($("#qr-canvas"), $("#qr-empty"), v, 544);
-  }
-  function setLink(v, from) {
-    fac.link = v.trim();
-    saveFac();
-    if (from !== "fac") $("#qr-link").value = fac.link;
-    if (from !== "stage") $("#st-link").value = fac.link;
-    drawQR();
-    if (stJoin) drawQRTo($("#st-qr"), $("#st-qr-empty"), baseLink(), 720);
-  }
-  (function initQR() {
-    var standalone = false;
-    try { standalone = window.self === window.top && /^https?:$/.test(location.protocol); } catch (e) {}
-    if (!fac.link) fac.link = standalone ? location.origin + location.pathname : PUBLIC_LINK;
-    $("#qr-link").value = fac.link;
-    $("#st-link").value = fac.link;
-    $("#qr-link").addEventListener("input", function (e) { setLink(e.target.value, "fac"); });
-    $("#st-link").addEventListener("input", function (e) { setLink(e.target.value, "stage"); });
-    $("#qr-panel").addEventListener("toggle", drawQR);
-    $("#qr-copy").addEventListener("click", function () {
-      var out = $("#qr-out"), btn = $("#qr-copy");
-      if (!out.value) return;
-      function done(msg) { btn.textContent = msg; setTimeout(function () { btn.textContent = "نسخ الرابط"; }, 1800); }
-      function fallback() { out.focus(); out.select(); done("الرابط محدّد، انسخه"); }
-      try {
-        navigator.clipboard.writeText(out.value).then(function () { done("انتسخ"); }, fallback);
-      } catch (e) { fallback(); }
-    });
-    drawQR();
-  })();
 
   // ------------------------------------------------------------------
   // My card: a contact QR (vCard) built on the phone. Tablemates scan it
@@ -1490,8 +1323,9 @@ details.panel[open] > summary::after{content:"−"}
     return L.join("\r\n");
   }
   function showCard() {
-    setSuit(player ? player.round : 0);
-    $("#cd-name").value = myCard.name || (player && player.name) || "";
+    var me = role === "manager" ? mgr : player;
+    setSuit(0);
+    $("#cd-name").value = myCard.name || (me && me.name) || "";
     $("#cd-job").value = myCard.job || "";
     $("#cd-tel").value = myCard.tel || "";
     $("#cd-link").value = myCard.link || "";
@@ -1499,6 +1333,7 @@ details.panel[open] > summary::after{content:"−"}
     var ready = !!(myCard.ready && myCard.name && (myCard.tel || myCard.link));
     $("#card-form").hidden = ready;
     $("#card-qr").hidden = !ready;
+    $("#card-back").textContent = role === "manager" ? "رجوع لشاشة المدير" : "رجوع للجولات";
     showView("card");
     if (ready) renderCardQR();
   }
@@ -1531,16 +1366,17 @@ details.panel[open] > summary::after{content:"−"}
     renderCardQR();
   });
   $("#cd-edit").addEventListener("click", function () { $("#card-qr").hidden = true; $("#card-form").hidden = false; $("#cd-job").focus(); });
-  $("#card-back").addEventListener("click", function () { if (player) showPlay(); else showJoin(); });
+  $("#card-back").addEventListener("click", function () {
+    if (role === "manager" && mgr) showManager(); else if (player) showPlay(); else showJoin();
+  });
   $("#btn-card").addEventListener("click", showCard);
   $("#btn-end-card").addEventListener("click", showCard);
 
   // ------------------------------------------------------------------
-  // Room screen (#stage): one facilitator on a projector runs every table
-  // in lockstep. The evening is a list of segments: a quick intro, the five
-  // word rounds, and a closing "give & get". One press starts a segment and
-  // the screen runs it: 1 minute to draw and prepare, then it calls each
-  // seat number in turn, then 3 minutes of open table talk.
+  // The evening's program, shared by the table manager and the room
+  // screen: a quick intro, the five word rounds, a closing give & get.
+  // A round runs: 1 minute to draw and prepare, the seat-by-seat turns,
+  // then 3 minutes of open table talk.
   // ------------------------------------------------------------------
   var PREP_SEC = 60, TALK_SEC = 180;
   var INTRO = { eyebrow: "قبل الجولات", title: "تعارف سريع", per: 30,
@@ -1554,145 +1390,393 @@ details.panel[open] > summary::after{content:"−"}
   GROUPS.forEach(function (g, i) { SEGS.push({ kind: "round", r: i }); });
   SEGS.push({ kind: "close" });
   var LAST_SEG = SEGS.length - 1;
-
-  var S_KEY = "kwh.stage.v2";
-  var stJoin = false;
-  var stg = (function () {
-    var d = { count: 8, duration: 90, seg: 0, phase: "ready", done: [], current: 0, auto: true, day: dayKey() };
-    var s = store.get(S_KEY, {}) || {};
-    Object.keys(d).forEach(function (k) { if (s[k] !== undefined && typeof s[k] === typeof d[k]) d[k] = s[k]; });
-    if (!Array.isArray(d.done)) d.done = [];
-    d.count = clamp(d.count | 0, 2, MAX_SEATS);
-    d.seg = clamp(d.seg | 0, 0, LAST_SEG);
-    if ([60, 90, 120, 150, 180].indexOf(d.duration) < 0) d.duration = 90;
-    if (["ready", "prep", "turns", "talk", "done"].indexOf(d.phase) < 0) d.phase = "ready";
-    if (d.day !== dayKey()) { d.day = dayKey(); d.seg = 0; d.phase = "ready"; d.done = []; d.current = 0; }
-    return d;
-  })();
-  function saveStage() { store.set(S_KEY, stg); }
-  function seg() { return SEGS[stg.seg]; }
-  function isRoundSeg() { return seg().kind === "round"; }
   function segInfo(sg) {
     if (sg.kind === "intro") return INTRO;
     if (sg.kind === "close") return CLOSE;
     return { eyebrow: "الجولة " + (sg.r + 1) + " من " + GROUPS.length, title: GROUPS[sg.r].title, per: 0 };
   }
-  function isLive() { return stg.phase === "prep" || stg.phase === "turns" || stg.phase === "talk"; }
-  function perTurn() { return isRoundSeg() ? stg.duration : segInfo(seg()).per; }
-  function phaseSec() { return stg.phase === "prep" ? PREP_SEC : stg.phase === "talk" ? TALK_SEC : perTurn(); }
-  function stOrder() {
-    var n = stg.count, sg = seg(), start = sg.kind === "round" ? sg.r % n : 0, out = [];
-    for (var i = 0; i < n; i++) out.push(((start + i) % n) + 1);
-    return out;
-  }
-  function stNext() {
-    var ord = stOrder(), n = ord.length, i = ord.indexOf(stg.current);
-    for (var k = 1; k <= n; k++) {
-      var seat = ord[((i < 0 ? -1 : i) + k + n) % n];
-      if (seat !== stg.current && stg.done.indexOf(seat) < 0) return seat;
+  function segSuit(sg) { return sg.kind === "round" ? sg.r : (sg.kind === "intro" ? 0 : LAST); }
+
+  // One runner drives one screen through the program: phases are
+  // ready -> prep -> turns -> talk -> done (rounds), ready -> turns -> done
+  // (intro, close), or ready -> block -> done when the room screen only
+  // keeps time for tables that have their own manager.
+  function makeRunner(cfg) {
+    var st = (function () {
+      var d = { count: 8, duration: 90, seg: 0, phase: "ready", done: [], current: 0, auto: true, managed: true, day: dayKey() };
+      var s = store.get(cfg.key, {}) || {};
+      Object.keys(d).forEach(function (k) { if (s[k] !== undefined && typeof s[k] === typeof d[k]) d[k] = s[k]; });
+      if (!Array.isArray(d.done)) d.done = [];
+      d.count = clamp(d.count | 0, 2, MAX_SEATS);
+      d.seg = clamp(d.seg | 0, 0, LAST_SEG);
+      if ([60, 90, 120, 150, 180].indexOf(d.duration) < 0) d.duration = 90;
+      if (["ready", "prep", "turns", "talk", "block", "done"].indexOf(d.phase) < 0) d.phase = "ready";
+      if (d.day !== dayKey()) { d.day = dayKey(); d.seg = 0; d.phase = "ready"; d.done = []; d.current = 0; }
+      return d;
+    })();
+    var graceIv = null, graceLeft = 0;
+    var R = { st: st };
+    R.save = function () { store.set(cfg.key, st); };
+    R.seg = function () { return SEGS[st.seg]; };
+    R.isRound = function () { return R.seg().kind === "round"; };
+    R.isLive = function () { return ["prep", "turns", "talk", "block"].indexOf(st.phase) >= 0; };
+    R.blockMode = function () { return !!(cfg.blockMode && cfg.blockMode()); };
+    R.perTurn = function () { return R.isRound() ? st.duration : segInfo(R.seg()).per; };
+    R.segTotal = function () { return R.isRound() ? PREP_SEC + st.count * st.duration + TALK_SEC : st.count * segInfo(R.seg()).per; };
+    R.phaseSec = function () {
+      if (st.phase === "prep") return PREP_SEC;
+      if (st.phase === "talk") return TALK_SEC;
+      if (st.phase === "block") return R.segTotal();
+      return R.perTurn();
+    };
+    R.order = function () {
+      var n = st.count, sg = R.seg(), start = sg.kind === "round" ? sg.r % n : 0, out = [];
+      for (var i = 0; i < n; i++) out.push(((start + i) % n) + 1);
+      return out;
+    };
+    R.next = function () {
+      var ord = R.order(), n = ord.length, i = ord.indexOf(st.current);
+      for (var k = 1; k <= n; k++) {
+        var seat = ord[((i < 0 ? -1 : i) + k + n) % n];
+        if (seat !== st.current && st.done.indexOf(seat) < 0) return seat;
+      }
+      return 0;
+    };
+    R.normalize = function () {
+      st.done = st.done.filter(function (x) { return x >= 1 && x <= st.count; });
+      if ((st.phase === "prep" || st.phase === "talk") && !R.isRound()) st.phase = "ready";
+      if (st.phase === "block" && !R.blockMode()) st.phase = "ready";
+      if (R.blockMode() && ["prep", "turns", "talk"].indexOf(st.phase) >= 0) st.phase = "ready";
+      if (st.phase === "turns" && !(st.current >= 1 && st.current <= st.count)) {
+        st.current = R.next();
+        if (!st.current) st.phase = R.isRound() ? "talk" : "done";
+      }
+      if (R.timer.duration !== R.phaseSec()) R.timer.setDuration(R.phaseSec());
+    };
+    R.cancelGrace = function () { if (graceIv) { clearInterval(graceIv); graceIv = null; } graceLeft = 0; };
+    function graceText() {
+      if (st.phase === "prep") return "الأدوار بتبلّش بعد " + graceLeft;
+      if (st.phase === "talk" || st.phase === "block") return (R.isRound() ? "الجولة" : "الفقرة") + " بتخلص بعد " + graceLeft;
+      var nx = R.next();
+      if (nx) return "رقم " + nx + " بعد " + graceLeft;
+      return R.isRound() ? "النقاش المفتوح بعد " + graceLeft : "الفقرة بتخلص بعد " + graceLeft;
     }
-    return 0;
-  }
-  function stNormalize() {
-    stg.done = stg.done.filter(function (x) { return x >= 1 && x <= stg.count; });
-    if ((stg.phase === "prep" || stg.phase === "talk") && !isRoundSeg()) stg.phase = "ready";
-    if (stg.phase === "turns" && !(stg.current >= 1 && stg.current <= stg.count)) {
-      stg.current = stNext();
-      if (!stg.current) stg.phase = isRoundSeg() ? "talk" : "done";
+    R.statusText = function (rem) {
+      if (rem <= 0) return graceLeft > 0 ? "خلص الوقت · " + graceText() : "خلص الوقت";
+      if (rem <= 15000 && R.timer.running) return "آخر ثواني";
+      return "";
+    };
+    function startGrace() {
+      R.cancelGrace();
+      graceLeft = 5;
+      R.timer.refresh();
+      graceIv = setInterval(function () {
+        graceLeft -= 1;
+        if (graceLeft <= 0) { R.cancelGrace(); R.skip(); } else R.timer.refresh();
+      }, 1000);
     }
+    R.timer = makeTimer(function (rem, t) { cfg.onTick(rem, t); }, function () {
+      chime(); vibrate([220, 120, 220]);
+      if (st.auto) startGrace();
+    });
+    R.timer.setDuration(R.phaseSec());
+    R.enter = function (phase, start) {
+      R.cancelGrace();
+      st.phase = phase;
+      if (phase === "turns") { st.done = []; st.current = R.order()[0]; }
+      if (phase === "ready" || phase === "done" || phase === "block") st.current = 0;
+      R.timer.setDuration(R.phaseSec());
+      R.timer.reset();
+      if (start && R.isLive()) { R.timer.start(); keepAwake(); }
+      R.save(); cfg.render();
+    };
+    // Move one step forward and start whatever comes next.
+    R.skip = function () {
+      unlockAudio();
+      R.cancelGrace();
+      var ph = st.phase;
+      if (ph === "prep") { R.enter("turns", true); return; }
+      if (ph === "talk" || ph === "block") { R.enter("done", false); return; }
+      if (ph !== "turns") return;
+      if (st.current && st.done.indexOf(st.current) < 0) st.done.push(st.current);
+      var nx = R.next();
+      if (!nx) { R.enter(R.isRound() ? "talk" : "done", true); return; }
+      st.current = nx;
+      R.timer.reset(); R.timer.start(); keepAwake();
+      R.save(); cfg.render();
+    };
+    R.goSeg = function (i) { st.seg = clamp(i, 0, LAST_SEG); st.done = []; R.enter("ready", false); };
+    R.main = function () {
+      unlockAudio();
+      if (st.phase === "ready") { R.enter(R.blockMode() ? "block" : (R.isRound() ? "prep" : "turns"), true); return; }
+      if (st.phase === "done") { if (st.seg < LAST_SEG) R.goSeg(st.seg + 1); return; }
+      R.cancelGrace();
+      if (R.timer.running) R.timer.pause(); else { R.timer.start(); keepAwake(); }
+      cfg.render();
+    };
+    R.resetTimer = function () { R.cancelGrace(); R.timer.reset(); cfg.render(); };
+    R.giveTurn = function (seat) {
+      R.cancelGrace();
+      st.phase = "turns";
+      st.done = st.done.filter(function (x) { return x !== seat; });
+      st.current = seat;
+      R.timer.setDuration(R.phaseSec());
+      R.timer.reset();
+      R.save(); cfg.render();
+    };
+    R.runLabel = function () { return R.timer.running ? "وقّف" : (R.timer.elapsed() > 0 ? "كمّل" : "ابدأ"); };
+    R.skipLabel = function () { return st.phase === "prep" ? "بلّشوا الأدوار" : (st.phase === "talk" || st.phase === "block") ? "خلّصوا" : "التالي"; };
+    R.estimate = function () {
+      var n = st.count, roundMin = Math.round((PREP_SEC + n * st.duration + TALK_SEC) / 60);
+      var introMin = Math.round(n * INTRO.per / 60), closeMin = Math.round(n * CLOSE.per / 60);
+      return "كل جولة ≈ " + roundMin + " دقيقة (دقيقة تحضير، " + n + " × " + fmtDur(st.duration) +
+        "، و3 دقائق نقاش). التعارف ≈ " + introMin + " والختام ≈ " + closeMin + ". كل البرنامج ≈ " +
+        (introMin + GROUPS.length * roundMin + closeMin) + " دقيقة.";
+    };
+    return R;
+  }
+  function paintTimer(prefix, rem, t, status) {
+    $("#" + prefix + "-digits").textContent = fmtClock(rem);
+    $("#" + prefix + "-bar").style.width = (clamp(rem / (t.duration * 1000), 0, 1) * 100) + "%";
+    var st = $("#" + prefix + "-status");
+    if (st) st.textContent = status;
   }
 
-  var graceIv = null, graceLeft = 0;
-  function cancelGrace() { if (graceIv) { clearInterval(graceIv); graceIv = null; } graceLeft = 0; }
-  function graceText() {
-    if (stg.phase === "prep") return "الأدوار بتبلّش بعد " + graceLeft;
-    if (stg.phase === "talk") return "الجولة بتخلص بعد " + graceLeft;
-    var nx = stNext();
-    if (nx) return "رقم " + nx + " بعد " + graceLeft;
-    return isRoundSeg() ? "النقاش المفتوح بعد " + graceLeft : "الفقرة بتخلص بعد " + graceLeft;
-  }
-  function stStatus(rem) {
-    var txt = "";
-    if (rem <= 0) txt = graceLeft > 0 ? "خلص الوقت · " + graceText() : "خلص الوقت";
-    else if (rem <= 15000 && stTimer.running) txt = "آخر ثواني";
-    $("#st-status").textContent = txt;
-  }
-  var stTimer = makeTimer(function (rem, t) {
-    $("#st-digits").textContent = fmtClock(rem);
-    $("#st-bar").style.width = (clamp(rem / (t.duration * 1000), 0, 1) * 100) + "%";
-    views.stage.classList.toggle("over", rem <= 0 && isLive());
-    stStatus(rem);
-    syncMainLabel();
-  }, function () {
-    chime(); vibrate([220, 120, 220]);
-    if (stg.auto) startGrace();
+  // ------------------------------------------------------------------
+  // Table manager (#facilitator): one person per table runs turns and
+  // time from their phone. Everything is worked out from the table
+  // number, so the manager sees each seat's word without a server.
+  // ------------------------------------------------------------------
+  var MG_KEY = "kwh.manager.v1";
+  var mgr = (function () {
+    var m = store.get(MG_KEY, null);
+    if (!m || typeof m !== "object" || typeof m.name !== "string" || !(m.table >= 1 && m.table <= 99)) return null;
+    if (!(m.seat >= 1 && m.seat <= MAX_SEATS)) m.seat = 1;
+    if (!m.names || typeof m.names !== "object") m.names = {};
+    return m;
+  })();
+  function saveMgr() { store.set(MG_KEY, mgr); }
+  var mgRevealAll = false;
+  var mrun = makeRunner({
+    key: "kwh.mrun.v1",
+    onTick: function (rem, t) {
+      paintTimer("mg", rem, t, mrun ? mrun.statusText(rem) : "");
+      var box = $("#mg-timer");
+      box.classList.toggle("warn", rem > 0 && rem <= 15000);
+      box.classList.toggle("over", rem <= 0);
+      if (mrun && mrun.isLive()) $("#mg-main").textContent = mrun.runLabel();
+    },
+    render: function () { renderManager(); }
   });
-  function startGrace() {
-    cancelGrace();
-    graceLeft = 5;
-    stStatus(-1);
-    graceIv = setInterval(function () {
-      graceLeft -= 1;
-      if (graceLeft <= 0) { cancelGrace(); stSkip(); } else stStatus(-1);
-    }, 1000);
+
+  function seatName(seat) {
+    var t = mgr && mgr.names[mgr.table];
+    var n = (t && t[seat]) || "";
+    if (!n && mgr && seat === mgr.seat) n = mgr.name;
+    return n;
   }
-  function stEnter(phase, start) {
-    cancelGrace();
-    stg.phase = phase;
-    if (phase === "turns") { stg.done = []; stg.current = stOrder()[0]; }
-    if (phase === "ready" || phase === "done") stg.current = 0;
-    stTimer.setDuration(phaseSec());
-    stTimer.reset();
-    if (start && isLive()) { stTimer.start(); keepAwake(); }
-    saveStage(); renderStage();
+  function setSeatName(seat, v) {
+    var t = mgr.names[mgr.table] || (mgr.names[mgr.table] = {});
+    if (v) t[seat] = v; else delete t[seat];
+    saveMgr();
   }
-  // Move one step forward and start whatever comes next.
-  function stSkip() {
-    unlockAudio();
-    cancelGrace();
-    var ph = stg.phase;
-    if (ph === "prep") { stEnter("turns", true); return; }
-    if (ph === "talk") { stEnter("done", false); return; }
-    if (ph !== "turns") return;
-    if (stg.current && stg.done.indexOf(stg.current) < 0) stg.done.push(stg.current);
-    var nx = stNext();
-    if (!nx) { stEnter(isRoundSeg() ? "talk" : "done", true); return; }
-    stg.current = nx;
-    stTimer.reset(); stTimer.start(); keepAwake();
-    saveStage(); renderStage();
+  function seatLabel(seat) { return seatName(seat) || ("رقم " + seat); }
+
+  function mgSay() {
+    var R = mrun, st = R.st, sg = R.seg(), ph = st.phase, first = R.order()[0];
+    if (sg.kind === "intro") {
+      if (ph === "ready") return "كل واحد بيعرّف عن حاله بـ30 ثانية: اسمه، شو بيشتغل، وشو بيدوّر عليه هالفترة. بنبلّش من رقم " + first + ".";
+      if (ph === "turns") return seatLabel(st.current) + "، تفضّل: اسمك، شو بتشتغل، وشو بتدوّر عليه؟";
+      return "خلصنا التعارف. الجاي: الجولة 1.";
+    }
+    if (sg.kind === "close") {
+      if (ph === "ready") return "كل واحد 45 ثانية: إشي بيقدر يقدّمه، وإشي بيدوّر عليه. إذا بتعرفوا حدا بيقدر يساعد، احكوا.";
+      if (ph === "turns") return seatLabel(st.current) + ": شو بتقدر تقدّم، وشو بتدوّر عليه؟";
+      return "افتحوا «بطاقتي» على التلفون، وامسحوا بطاقات بعض عشان تضلّوا على تواصل. شكرًا!";
+    }
+    var g = GROUPS[sg.r];
+    if (ph === "ready") return "افتحوا الجولة " + (sg.r + 1) + " على تلفوناتكم واكبسوا «اخلط». عندكم دقيقة تحضّروا جوابكم.";
+    if (ph === "prep") return "حضّروا جوابكم: " + g.question;
+    if (ph === "turns") return (st.current === first ? "" : "قبل ما تجاوب: جملة وحدة عن إشي لفتك بحكاية اللي قبلك. ") + g.question;
+    if (ph === "talk") return TALK_PROMPT;
+    return "خلصت الجولة. الجاي: " + segInfo(SEGS[st.seg + 1]).title + ".";
   }
-  function stGoSeg(i) {
-    stJoin = false;
-    stg.seg = clamp(i, 0, LAST_SEG);
-    stg.done = [];
-    stEnter("ready", false);
+
+  function showManager() {
+    if (!mgr) { showJoin("manager"); return; }
+    role = "manager";
+    store.set(ROLE_KEY, role);
+    showView("fac");
+    renderManager();
   }
-  function stMain() {
-    unlockAudio();
-    if (stJoin) { stJoin = false; renderStage(); return; }
-    var ph = stg.phase;
-    if (ph === "ready") { stEnter(isRoundSeg() ? "prep" : "turns", true); return; }
-    if (ph === "done") { if (stg.seg < LAST_SEG) stGoSeg(stg.seg + 1); return; }
-    cancelGrace();
-    if (stTimer.running) stTimer.pause(); else { stTimer.start(); keepAwake(); }
-    renderStage();
+
+  function renderManager() {
+    if (!mgr) return;
+    var R = mrun, st = R.st;
+    R.normalize();
+    var sg = R.seg(), info = segInfo(sg), round = R.isRound(), ph = st.phase, live = R.isLive();
+    setSuit(segSuit(sg));
+    $("#mg-table").textContent = "طاولة " + mgr.table;
+    $("#mg-who").textContent = mgr.name;
+
+    var tabs = $("#mg-tabs");
+    tabs.textContent = "";
+    SEGS.forEach(function (x, i) {
+      var b = el("button", "tab");
+      b.type = "button";
+      b.setAttribute("aria-selected", String(i === st.seg));
+      b.style.setProperty("--tc", "var(--s" + (segSuit(x) + 1) + ")");
+      b.appendChild(el("span", "dot"));
+      b.appendChild(el("span", null, x.kind === "intro" ? "تعارف" : x.kind === "close" ? "ختام" : (x.r + 1) + " · " + GROUPS[x.r].title));
+      b.addEventListener("click", function () { if (i !== st.seg) R.goSeg(i); });
+      tabs.appendChild(b);
+    });
+    var cur = tabs.children[st.seg];
+    if (cur && cur.scrollIntoView) { try { cur.scrollIntoView({ block: "nearest", inline: "nearest" }); } catch (e) {} }
+
+    $("#mg-eyebrow").textContent = info.eyebrow;
+    $("#mg-title").textContent = info.title;
+    $("#mg-say").textContent = mgSay();
+
+    var turn = ph === "turns";
+    $("#mg-turn").hidden = !turn;
+    $("#mg-word").hidden = !(turn && round);
+    if (turn) {
+      $("#mg-seat").textContent = st.current;
+      $("#mg-name").textContent = seatLabel(st.current);
+      var nameIn = $("#mg-name-in");
+      nameIn.hidden = sg.kind !== "intro";
+      if (sg.kind === "intro" && document.activeElement !== nameIn) nameIn.value = seatName(st.current);
+      if (round) $("#mg-word").textContent = wordFor(mgr.table, sg.r, st.current);
+    }
+    $("#mg-timer").hidden = !live;
+    var main = $("#mg-main");
+    main.hidden = false;
+    if (ph === "ready") main.textContent = sg.kind === "intro" ? "ابدأ التعارف" : round ? "ابدأ التحضير" : "ابدأ";
+    else if (ph === "done") { main.textContent = "الفقرة التالية"; main.hidden = st.seg >= LAST_SEG; }
+    else main.textContent = R.runLabel();
+    $("#mg-skip").hidden = !live;
+    $("#mg-skip").textContent = R.skipLabel();
+    $("#mg-reset").hidden = !live;
+
+    $("#mg-helpers").hidden = !round;
+    if (round) {
+      var hl = $("#mg-helper-list");
+      hl.textContent = "";
+      GROUPS[sg.r].helpers.forEach(function (h) { hl.appendChild(el("li", null, h)); });
+    }
+
+    renderMgSeats();
+
+    $("#mg-count").textContent = st.count;
+    document.querySelectorAll("#mg-dur button").forEach(function (b) {
+      b.setAttribute("aria-checked", String(Number(b.dataset.sec) === st.duration));
+    });
+    $("#mg-auto").checked = st.auto;
+    $("#mg-estimate").textContent = R.estimate();
+    if ($("#mg-qr-panel").open) drawMgQR();
   }
-  function syncMainLabel() {
-    var b = $("#st-main"), ph = stg.phase;
-    b.hidden = false;
-    if (stJoin) b.textContent = "رجوع";
-    else if (ph === "ready") b.textContent = "ابدأ";
-    else if (ph === "done") { if (stg.seg < LAST_SEG) b.textContent = "الفقرة التالية"; else b.hidden = true; }
-    else b.textContent = stTimer.running ? "وقّف" : (stTimer.elapsed() > 0 ? "كمّل" : "ابدأ");
+
+  function renderMgSeats() {
+    var R = mrun, st = R.st, sg = R.seg(), round = R.isRound(), list = $("#mg-seats");
+    var ord = R.order(), nxt = st.phase === "turns" ? R.next() : 0;
+    list.textContent = "";
+    $("#mg-seat-note").textContent = "الترتيب بهالفقرة بيبلّش من رقم " + ord[0] + ". اكبس على رقم عشان تعطيه الدور.";
+    $("#mg-reveal").hidden = !round;
+    $("#mg-reveal").textContent = mgRevealAll ? "خبّي الكلمات الجاية" : "اكشف كل الكلمات";
+    ord.forEach(function (seat) {
+      var isCur = st.phase === "turns" && seat === st.current, isDone = st.done.indexOf(seat) >= 0, isNext = seat === nxt;
+      var li = el("li", "seat-row" + (isCur ? " is-current" : "") + (isDone ? " is-done" : ""));
+      var pick = el("button", "seat-pick");
+      pick.type = "button";
+      pick.setAttribute("aria-label", "أعطِ الدور لرقم " + seat);
+      pick.appendChild(el("span", "seat-badge", String(seat)));
+      pick.addEventListener("click", function () { R.giveTurn(seat); });
+
+      var mid = el("div", "seat-mid");
+      var inp = el("input", "seat-name");
+      inp.type = "text"; inp.maxLength = 30;
+      inp.placeholder = "اسم (اختياري)";
+      inp.value = seatName(seat);
+      inp.setAttribute("aria-label", "اسم صاحب رقم " + seat);
+      inp.addEventListener("input", function () {
+        setSeatName(seat, inp.value.trim());
+        if (st.phase === "turns" && st.current === seat) { $("#mg-name").textContent = seatLabel(seat); $("#mg-say").textContent = mgSay(); }
+      });
+      mid.appendChild(inp);
+      if (round) {
+        var show = mgRevealAll || isCur || isDone || seat === mgr.seat;
+        mid.appendChild(el("span", "seat-word" + (show ? "" : " hidden-word"), show ? wordFor(mgr.table, sg.r, seat) : "•••"));
+      }
+      var pill = el("span", "pill");
+      if (isCur) { pill.classList.add("now"); pill.textContent = "هلّق"; }
+      else if (isDone) {
+        pill.classList.add("done");
+        pill.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+        pill.appendChild(document.createTextNode("حكى"));
+      }
+      else if (isNext) { pill.classList.add("next"); pill.textContent = "الجاي"; }
+      else if (seat === mgr.seat) { pill.classList.add("next"); pill.textContent = "إنت"; }
+      li.appendChild(pick); li.appendChild(mid); li.appendChild(pill);
+      list.appendChild(li);
+    });
   }
+  function drawMgQR() {
+    var b = baseLink(), v = b ? b + "#table-" + mgr.table : "";
+    $("#mg-qr-out").value = v;
+    drawQRTo($("#mg-qr"), $("#mg-qr-empty"), v, 520);
+  }
+
+  $("#mg-main").addEventListener("click", function () { mrun.main(); });
+  $("#mg-skip").addEventListener("click", function () { mrun.skip(); });
+  $("#mg-reset").addEventListener("click", function () { mrun.resetTimer(); });
+  $("#mg-edit").addEventListener("click", function () { showJoin("manager"); });
+  $("#mg-card").addEventListener("click", showCard);
+  $("#mg-reveal").addEventListener("click", function () { mgRevealAll = !mgRevealAll; renderMgSeats(); });
+  $("#mg-qr-panel").addEventListener("toggle", function () { if ($("#mg-qr-panel").open) drawMgQR(); });
+  $("#mg-name-in").addEventListener("input", function (e) {
+    var seat = mrun.st.current;
+    if (!seat) return;
+    setSeatName(seat, e.target.value.trim());
+    $("#mg-name").textContent = seatLabel(seat);
+    $("#mg-say").textContent = mgSay();
+    renderMgSeats();
+  });
+  document.querySelectorAll("[data-mset]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      mrun.st.count = clamp(mrun.st.count + Number(b.dataset.mset), 2, MAX_SEATS);
+      mrun.save(); renderManager();
+    });
+  });
+  document.querySelectorAll("#mg-dur button").forEach(function (b) {
+    b.addEventListener("click", function () { mrun.st.duration = Number(b.dataset.sec); mrun.save(); renderManager(); });
+  });
+  $("#mg-auto").addEventListener("change", function (e) { mrun.st.auto = e.target.checked; if (!mrun.st.auto) mrun.cancelGrace(); mrun.save(); renderManager(); });
+
+  // ------------------------------------------------------------------
+  // Room screen (#stage) on a projector. Without table managers it calls
+  // each seat number at every table at once. With managers it only keeps
+  // one clock per segment so all tables finish together.
+  // ------------------------------------------------------------------
+  var stJoin = false;
+  var stage = makeRunner({
+    key: "kwh.stage.v3",
+    blockMode: function () { return !!(stage && stage.st.managed); },
+    onTick: function (rem, t) {
+      paintTimer("st", rem, t, stage ? stage.statusText(rem) : "");
+      views.stage.classList.toggle("over", rem <= 0 && !!stage && stage.isLive());
+      if (stage && stage.isLive() && !stJoin) $("#st-main").textContent = stage.runLabel();
+    },
+    render: function () { renderStage(); }
+  });
 
   function renderStage() {
-    stNormalize();
-    var sg = seg(), info = segInfo(sg), ph = stg.phase, round = sg.kind === "round";
-    var g = round ? GROUPS[sg.r] : null, live = isLive();
-    setSuit(round ? sg.r : (sg.kind === "intro" ? 0 : LAST));
+    var R = stage, st = R.st;
+    R.normalize();
+    var sg = R.seg(), info = segInfo(sg), ph = st.phase, round = R.isRound();
+    var g = round ? GROUPS[sg.r] : null, live = R.isLive(), managed = R.blockMode();
+    setSuit(segSuit(sg));
     views.stage.classList.toggle("turns", ph === "turns" && !stJoin);
-    if (stTimer.duration !== phaseSec()) stTimer.setDuration(phaseSec());
     $("#st-eyebrow").textContent = info.eyebrow;
     $("#st-title").textContent = info.title;
 
@@ -1703,77 +1787,96 @@ details.panel[open] > summary::after{content:"−"}
 
     if (ph === "ready") {
       $("#st-ready-big").textContent = round ? "افتحوا الجولة " + (sg.r + 1) + " على تلفوناتكم" : info.ready;
-      $("#st-ready-sub").textContent = round ? "لما نبلّش: اكبسوا «اخلط»، وعندكم دقيقة تحضّروا جوابكم." : info.prompt;
+      $("#st-ready-sub").textContent = managed ? (round ? "مدير كل طاولة بيبلّش الجولة على طاولته." : info.prompt) :
+        (round ? "لما نبلّش: اكبسوا «اخلط»، وعندكم دقيقة تحضّروا جوابكم." : info.prompt);
     }
+    var label = ph === "prep" ? "اكبسوا «اخلط» وحضّروا جوابكم" :
+      ph === "talk" ? "نقاش مفتوح على الطاولة" :
+      ph === "block" ? (round ? "الجولة شغّالة على الطاولات" : info.title + " على الطاولات") : "";
     $("#st-live-label").hidden = ph === "turns";
-    $("#st-live-label").textContent = ph === "prep" ? "اكبسوا «اخلط» وحضّروا جوابكم" : "نقاش مفتوح على الطاولة";
+    $("#st-live-label").textContent = label;
     $("#st-seat-line").hidden = ph !== "turns";
-    if (ph === "turns") $("#st-seat").textContent = stg.current;
+    if (ph === "turns") $("#st-seat").textContent = st.current;
     if (ph === "done") {
-      var nextSeg = stg.seg < LAST_SEG ? SEGS[stg.seg + 1] : null;
+      var nextSeg = st.seg < LAST_SEG ? SEGS[st.seg + 1] : null;
       $("#st-done-big").textContent = sg.kind === "close" ? "خلصنا! شكرًا على الحكايات." : (round ? "خلصت الجولة " + (sg.r + 1) : "خلصنا التعارف");
       $("#st-done-sub").textContent = nextSeg ? "الجاي: " + segInfo(nextSeg).title :
         "بدكم تضلّوا على تواصل؟ افتحوا «بطاقتي» على التلفون، وخلّوا الطاولة تمسح الرمز.";
     }
 
     var q = "";
-    if (round && (ph === "ready" || ph === "prep" || ph === "turns")) q = g.question;
+    if (round && (ph === "ready" || ph === "prep" || ph === "turns" || ph === "block")) q = g.question;
     else if (round && ph === "talk") q = TALK_PROMPT;
-    else if (!round && ph === "turns") q = info.prompt;
+    else if (!round && (ph === "turns" || ph === "block")) q = info.prompt;
     $("#st-q").textContent = q;
     $("#st-q").hidden = stJoin || !q;
-    $("#st-bridge").hidden = stJoin || !(round && ph === "turns" && stg.current !== stOrder()[0]);
+    $("#st-bridge").hidden = stJoin || !(round && ph === "turns" && st.current !== R.order()[0]);
 
     var seats = $("#st-seats");
     seats.textContent = "";
     seats.hidden = stJoin || ph !== "turns";
-    stOrder().forEach(function (seat) {
+    R.order().forEach(function (seat) {
       var li = el("li", null, String(seat));
-      if (seat === stg.current) li.className = "now";
-      else if (stg.done.indexOf(seat) >= 0) li.className = "done";
+      if (seat === st.current) li.className = "now";
+      else if (st.done.indexOf(seat) >= 0) li.className = "done";
       seats.appendChild(li);
     });
 
+    var main = $("#st-main");
+    main.hidden = false;
+    if (stJoin) main.textContent = "رجوع";
+    else if (ph === "ready") main.textContent = "ابدأ";
+    else if (ph === "done") { main.textContent = "الفقرة التالية"; main.hidden = st.seg >= LAST_SEG; }
+    else main.textContent = R.runLabel();
     $("#st-skip").hidden = stJoin || !live;
-    $("#st-skip").textContent = ph === "prep" ? "بلّشوا الأدوار" : ph === "talk" ? "خلّص النقاش" : "التالي";
+    $("#st-skip").textContent = R.skipLabel();
     $("#st-reset").hidden = stJoin || !live;
-    $("#st-prev").disabled = stg.seg === 0;
-    $("#st-nextseg").disabled = stg.seg === LAST_SEG;
+    $("#st-prev").disabled = st.seg === 0;
+    $("#st-nextseg").disabled = st.seg === LAST_SEG;
     $("#st-nextseg").hidden = ph === "done" && !stJoin;
     $("#st-qr-btn").textContent = stJoin ? "سكّر الرمز" : "رمز الدخول";
-    syncMainLabel();
 
-    $("#st-count").textContent = stg.count;
+    $("#st-count").textContent = st.count;
     document.querySelectorAll("#st-dur button").forEach(function (b) {
-      b.setAttribute("aria-checked", String(Number(b.dataset.sec) === stg.duration));
+      b.setAttribute("aria-checked", String(Number(b.dataset.sec) === st.duration));
     });
-    $("#st-auto").checked = stg.auto;
-    var n = stg.count, roundMin = Math.round((PREP_SEC + n * stg.duration + TALK_SEC) / 60);
-    var introMin = Math.round(n * INTRO.per / 60), closeMin = Math.round(n * CLOSE.per / 60);
-    $("#st-estimate").textContent = "كل جولة ≈ " + roundMin + " دقيقة (دقيقة تحضير، " + n + " × " + fmtDur(stg.duration) +
-      "، و3 دقائق نقاش). التعارف ≈ " + introMin + " والختام ≈ " + closeMin + ". كل البرنامج ≈ " +
-      (introMin + GROUPS.length * roundMin + closeMin) + " دقيقة. بدك أقصر؟ اقفز جولات بـ«الفقرة التالية».";
+    $("#st-auto").checked = st.auto;
+    $("#st-managed").checked = st.managed;
+    $("#st-estimate").textContent = R.estimate() + " بدك أقصر؟ اقفز جولات بـ«الفقرة التالية».";
     if (stJoin) drawQRTo($("#st-qr"), $("#st-qr-empty"), baseLink(), 720);
   }
 
   function showStage() { showView("stage"); renderStage(); stWake(); }
+  function stMain() { if (stJoin) { stJoin = false; renderStage(); return; } stage.main(); }
 
   $("#st-main").addEventListener("click", stMain);
-  $("#st-skip").addEventListener("click", stSkip);
-  $("#st-reset").addEventListener("click", function () { cancelGrace(); stTimer.reset(); renderStage(); });
-  $("#st-prev").addEventListener("click", function () { stGoSeg(stg.seg - 1); });
-  $("#st-nextseg").addEventListener("click", function () { stGoSeg(stg.seg + 1); });
+  $("#st-skip").addEventListener("click", function () { stage.skip(); });
+  $("#st-reset").addEventListener("click", function () { stage.resetTimer(); });
+  $("#st-prev").addEventListener("click", function () { stJoin = false; stage.goSeg(stage.st.seg - 1); });
+  $("#st-nextseg").addEventListener("click", function () { stJoin = false; stage.goSeg(stage.st.seg + 1); });
   $("#st-qr-btn").addEventListener("click", function () { stJoin = !stJoin; renderStage(); });
+  $("#st-link").value = appLink;
+  $("#st-link").addEventListener("input", function (e) {
+    appLink = e.target.value.trim();
+    store.set(LINK_KEY, appLink);
+    if (stJoin) drawQRTo($("#st-qr"), $("#st-qr-empty"), baseLink(), 720);
+  });
   document.querySelectorAll("[data-sset]").forEach(function (b) {
     b.addEventListener("click", function () {
-      stg.count = clamp(stg.count + Number(b.dataset.step), 2, MAX_SEATS);
-      saveStage(); renderStage();
+      stage.st.count = clamp(stage.st.count + Number(b.dataset.step), 2, MAX_SEATS);
+      stage.save(); renderStage();
     });
   });
   document.querySelectorAll("#st-dur button").forEach(function (b) {
-    b.addEventListener("click", function () { stg.duration = Number(b.dataset.sec); saveStage(); renderStage(); });
+    b.addEventListener("click", function () { stage.st.duration = Number(b.dataset.sec); stage.save(); renderStage(); });
   });
-  $("#st-auto").addEventListener("change", function (e) { stg.auto = e.target.checked; if (!stg.auto) cancelGrace(); saveStage(); renderStage(); });
+  $("#st-auto").addEventListener("change", function (e) { stage.st.auto = e.target.checked; if (!stage.st.auto) stage.cancelGrace(); stage.save(); renderStage(); });
+  $("#st-managed").addEventListener("change", function (e) {
+    stage.st.managed = e.target.checked;
+    stage.cancelGrace(); stage.timer.reset();
+    stage.st.phase = "ready"; stage.st.done = []; stage.st.current = 0;
+    stage.save(); renderStage();
+  });
 
   function toggleFull() {
     try {
@@ -1801,25 +1904,33 @@ details.panel[open] > summary::after{content:"−"}
     var isSpace = e.key === " " || e.code === "Space";
     if ((tag === "BUTTON" || tag === "SUMMARY" || tag === "A") && (isSpace || e.key === "Enter")) return;
     if (isSpace) { e.preventDefault(); stMain(); }
-    else if (e.key === "ArrowLeft" || e.key === "n" || e.key === "N") { if (isLive() && !stJoin) stSkip(); }
-    else if (e.key === "r" || e.key === "R") { if (isLive()) { cancelGrace(); stTimer.reset(); renderStage(); } }
+    else if (e.key === "ArrowLeft" || e.key === "n" || e.key === "N") { if (stage.isLive() && !stJoin) stage.skip(); }
+    else if (e.key === "r" || e.key === "R") { if (stage.isLive()) stage.resetTimer(); }
     else if (e.key === "f" || e.key === "F") { toggleFull(); }
   });
 
   // ------------------------------------------------------------------
-  // Routing: "#stage" opens the room screen for a projector,
-  // "#facilitator" opens the table facilitator screen,
-  // "#table-3" pre-fills table 3 for participants.
+  // Routing: "#stage" room screen, "#facilitator" (or "#manager") the
+  // table manager, "#table-7" pre-fills table 7 for participants.
+  // Without a hash, the phone opens whatever role it last joined as.
   // ------------------------------------------------------------------
   function route() {
     var h = "";
     try { h = decodeURIComponent((location.hash || "").replace(/^#/, "")); } catch (e) {}
     if (!ptEl.hidden) { pTimer.reset(); ptEl.hidden = true; }
-    if (h !== "stage" && !views.stage.hidden) { cancelGrace(); stTimer.pause(); }
+    if (h !== "stage" && !views.stage.hidden) { stage.cancelGrace(); stage.timer.pause(); }
     if (h === "stage") { showStage(); return; }
-    if (h === "facilitator") { showFac(); return; }
-    if (!player) { showJoin(); return; }
-    showPlay();
+    if (h === "facilitator" || h === "manager") { showManager(); return; }
+    var m = /^table-(\d{1,2})$/.exec(h);
+    hashTable = m ? clamp(Number(m[1]), 1, 99) : null;
+    if (hashTable) {
+      if (player && player.table === hashTable && role === "player") showPlay();
+      else showJoin("player");
+      return;
+    }
+    if (role === "manager" && mgr) { showManager(); return; }
+    if (player) { showPlay(); return; }
+    showJoin("player");
   }
   window.addEventListener("hashchange", route);
   route();
