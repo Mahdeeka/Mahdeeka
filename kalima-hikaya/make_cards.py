@@ -79,6 +79,18 @@ body {{ margin: 0; font-family: "Readex Pro", "Noto Sans Arabic", sans-serif; co
 </style></head><body>{sheets}</body></html>"""
 
 
+def qr_image_html(n: int, url: str) -> str:
+    color = SUITS[(n - 1) % len(SUITS)]
+    return f"""<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&family=Lalezar&display=swap">
+<style>html,body{{margin:0;background:#fff}}
+body{{width:600px;height:750px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font-family:"Lalezar",sans-serif;color:#14161E}}
+svg{{width:500px;height:500px}}
+.t{{font-size:84px;line-height:1.1;color:{color}}}
+.s{{font-family:"Aref Ruqaa",serif;font-size:30px}}</style></head>
+<body>{qr_svg(f"{url}#table-{n}")}<div class="t">طاولة {n}</div><div class="s">كلمة وراها حكاية</div></body></html>"""
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--url", required=True, help="public link of the app, without #")
@@ -104,6 +116,16 @@ def main() -> None:
     subprocess.run([chrome, "--headless", "--no-sandbox", "--disable-gpu", "--no-pdf-header-footer",
                     "--virtual-time-budget=20000", f"--print-to-pdf={out / 'table-cards.pdf'}",
                     html_path.resolve().as_uri()], check=True, capture_output=True)
+    img_dir = out / "qr-tables"
+    img_dir.mkdir(exist_ok=True)
+    for n in range(1, a.tables + 1):
+        page = img_dir / f"table-{n:02d}.html"
+        page.write_text(qr_image_html(n, url), encoding="utf-8")
+        subprocess.run([chrome, "--headless", "--no-sandbox", "--disable-gpu", "--hide-scrollbars",
+                        "--window-size=600,750", "--force-device-scale-factor=2", "--virtual-time-budget=15000",
+                        f"--screenshot={img_dir / f'table-{n:02d}.png'}", page.resolve().as_uri()],
+                       check=True, capture_output=True)
+        page.unlink()
     print(f"wrote {out / 'table-cards.pdf'} ({a.tables} tables, one QR per table, 2 per page), {out / 'qr.png'}, {out / 'qr.svg'}")
 
 
