@@ -185,6 +185,9 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 /* ---------- end ---------- */
 .end-head{display:flex;flex-direction:column;gap:8px}
 .end-title{font-family:var(--font-logo);font-size:clamp(34px,9vw,44px);font-weight:700}
+.top-actions{display:flex;gap:14px;flex:none}
+.card-qr{display:flex;flex-direction:column;align-items:center;gap:14px}
+.card-qr .qr-tile canvas{max-width:300px}
 .word-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
 .word-list li{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:10px 12px}
 .mini-card{flex:none;min-width:116px;max-width:52%;text-align:center;background:var(--pc);color:var(--on-suit);border-radius:12px;padding:8px 12px 4px;font-family:var(--font-word);font-size:22px;line-height:1.35}
@@ -332,6 +335,9 @@ details.panel[open] > summary::after{content:"−"}
 .st-status{font-size:clamp(16px,min(2vw,3vh),30px);font-weight:700}
 .st-status:not(:empty){background:var(--on-suit);color:var(--ink-on-paper);border-radius:99px;padding:4px 20px}
 .st-q{font-size:clamp(16px,min(2.3vw,3.6vh),34px);line-height:1.55;max-width:44ch;text-wrap:balance}
+.st-label{font-size:clamp(20px,min(3vw,4.6vh),46px);font-weight:700;text-wrap:balance}
+.st-bridge{font-size:clamp(14px,min(1.7vw,2.6vh),26px);background:var(--on-suit-faint);border-radius:99px;padding:5px 18px;text-wrap:balance}
+.stage-view.turns .st-digits{font-size:clamp(68px,min(18vw,21vh),260px)}
 .stage-view.turns .st-q{font-size:clamp(14px,min(1.8vw,2.8vh),28px);max-width:60ch;color:var(--on-suit-soft)}
 .st-seats{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(6px,1vw,12px)}
 .st-seats li{width:clamp(38px,min(4.4vw,6.4vh),66px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;border:2px solid var(--on-suit-soft);font-weight:700;font-size:clamp(15px,min(1.9vw,2.8vh),28px);font-variant-numeric:tabular-nums}
@@ -382,7 +388,7 @@ details.panel[open] > summary::after{content:"−"}
         <input id="in-name" type="text" autocomplete="given-name" maxlength="30" placeholder="الاسم الأول بكفي" required>
       </div>
       <fieldset class="field">
-        <legend>رقمك على الطاولة</legend>
+        <legend>رقمك = دورك بالحكي</legend>
         <div class="seat-grid" id="seat-grid">
           <input type="radio" name="seat" id="seat-1" value="1"><label for="seat-1">1</label>
           <input type="radio" name="seat" id="seat-2" value="2"><label for="seat-2">2</label>
@@ -395,7 +401,7 @@ details.panel[open] > summary::after{content:"−"}
           <input type="radio" name="seat" id="seat-9" value="9"><label for="seat-9">9</label>
           <input type="radio" name="seat" id="seat-10" value="10"><label for="seat-10">10</label>
         </div>
-        <p class="help">رقمك حسب مكانك: اللي قدّام كرت الطاولة رقم 1، وبعده مع عقارب الساعة. كل رقم على نفس الطاولة بتطلعله كلمة مختلفة.</p>
+        <p class="help">اللي قدّام كرت الطاولة رقم 1، وبعده مع عقارب الساعة. شاشة القاعة بتنادي الأرقام بالدور، وكل رقم على الطاولة بتطلعله كلمة مختلفة.</p>
       </fieldset>
       <p class="form-error" id="join-error" role="alert" hidden></p>
       <button class="btn btn-primary btn-big" type="submit">يلّا نبلّش</button>
@@ -404,7 +410,7 @@ details.panel[open] > summary::after{content:"−"}
     <ol class="steps">
       <li>الميسّر بشرح الفعالية، وكل طاولة بتعدّ من 1 لـ8.</li>
       <li>لما تبلّش الجولة، اكبس «اخلط» وبتطلعلك كلمة وسؤال.</li>
-      <li>كل واحد بدوره بحكي عن كلمته، والمؤقّت بضبط الوقت.</li>
+      <li>كل واحد بدوره بيحكي عن كلمته، وبعدين نقاش مفتوح على الطاولة.</li>
     </ol>
     <footer class="foot"><a class="quiet-link" href="#facilitator">شاشة الميسّر</a></footer>
   </main>
@@ -416,7 +422,10 @@ details.panel[open] > summary::after{content:"−"}
         <span class="avatar" id="p-avatar" aria-hidden="true">؟</span>
         <div class="who-text"><strong id="p-name"></strong><span id="p-meta"></span></div>
       </div>
-      <button class="btn-text" id="btn-edit" type="button">تغيير</button>
+      <div class="top-actions">
+        <button class="btn-text" id="btn-card" type="button">بطاقتي</button>
+        <button class="btn-text" id="btn-edit" type="button">تغيير</button>
+      </div>
     </header>
 
     <nav class="pips" id="pips" aria-label="الجولات"></nav>
@@ -452,13 +461,13 @@ details.panel[open] > summary::after{content:"−"}
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
         <span id="shuffle-label">اخلط واسحب كلمتك</span>
       </button>
-      <p class="help center">استنّى الميسّر يبلّش الجولة، وبعدين اكبس.</p>
+      <p class="help center">اكبس لما شاشة القاعة تقول «اخلط».</p>
     </div>
 
     <section class="question-block panel" id="q-block" hidden>
       <p class="eyebrow">السؤال</p>
       <p class="question" id="q-text"></p>
-      <p class="help">حضّر جوابك من تجربتك. ما في جواب صح أو غلط.</p>
+      <p class="help">حضّر جوابك من تجربتك. ما في جواب صح أو غلط. إذا الكلمة ما بتعبّر عنك، احكِ ليش. ومش لازم تحكي تفاصيل حسّاسة عن مكان شغلك.</p>
       <div class="row">
         <button class="btn btn-secondary" id="btn-timer" type="button">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2"/><path d="M9.5 2.5h5"/></svg>
@@ -482,8 +491,35 @@ details.panel[open] > summary::after{content:"−"}
     </header>
     <ol class="word-list" id="end-list"></ol>
     <div class="row">
+      <button class="btn btn-primary" id="btn-end-card" type="button">بطاقتي: خلّي الطاولة تحفظ رقمك</button>
       <button class="btn btn-secondary" id="btn-back-rounds" type="button">رجوع للجولات</button>
     </div>
+  </main>
+
+  <!-- ================= MY CARD (contact QR) ================= -->
+  <main id="view-card" class="view" hidden>
+    <header class="end-head">
+      <p class="eyebrow">بطاقتي</p>
+      <h2 class="round-title">خلّي الطاولة تحفظ رقمك</h2>
+      <p class="help">عبّي اللي بدك تشاركه وبيطلع رمز. اللي حواليك بيمسحوه بكاميرا التلفون وبينحفظ عندهم كجهة اتصال. المعلومات بتضل على تلفونك بس.</p>
+    </header>
+    <form id="card-form" class="panel join-form" novalidate>
+      <div class="field"><label for="cd-name">الاسم</label><input id="cd-name" type="text" maxlength="40" autocomplete="name"></div>
+      <div class="field"><label for="cd-job">شو بتشتغل؟</label><input id="cd-job" type="text" maxlength="60" placeholder="مثلًا: محامية، مطوّر، صاحب مصلحة"></div>
+      <div class="field"><label for="cd-tel">رقم التلفون</label><input id="cd-tel" type="tel" dir="ltr" inputmode="tel" maxlength="20" autocomplete="tel"></div>
+      <div class="field"><label for="cd-link">إيميل أو LinkedIn (اختياري)</label><input id="cd-link" type="text" dir="ltr" maxlength="120" autocomplete="email"></div>
+      <p class="form-error" id="card-error" role="alert" hidden></p>
+      <button class="btn btn-primary btn-big" type="submit">اعمل الرمز</button>
+    </form>
+    <section class="panel card-qr" id="card-qr" hidden>
+      <div class="qr-tile">
+        <canvas id="cd-canvas" width="600" height="600" hidden></canvas>
+        <p class="qr-empty" id="cd-empty">عم نعمل الرمز…</p>
+      </div>
+      <p class="help center">امسحوا الرمز بكاميرا التلفون، وبيطلع «إضافة جهة اتصال».</p>
+      <button class="btn btn-secondary" id="cd-edit" type="button">تعديل المعلومات</button>
+    </section>
+    <div class="row"><button class="btn btn-secondary" id="card-back" type="button">رجوع للجولات</button></div>
   </main>
 
   <!-- ================= FACILITATOR ================= -->
@@ -611,25 +647,27 @@ details.panel[open] > summary::after{content:"−"}
   <main id="view-stage" class="stage-view" hidden>
     <header class="st-head">
       <div class="st-round">
-        <span class="st-round-num" id="st-round-num"></span>
-        <span class="st-round-title" id="st-round-title"></span>
+        <span class="st-round-num" id="st-eyebrow"></span>
+        <span class="st-round-title" id="st-title"></span>
       </div>
       <span class="st-logo">كلمة وراها حكاية</span>
     </header>
 
     <section class="st-main">
-      <div class="st-block" id="st-intro">
-        <p class="st-big">افتحوا <span id="st-intro-round">الجولة 1</span> واكبسوا «اخلط»</p>
-        <p class="st-sub">كل واحد على الطاولة بتطلعله كلمة مختلفة. حضّروا جوابكم على السؤال:</p>
+      <div class="st-block" id="st-ready">
+        <p class="st-big" id="st-ready-big"></p>
+        <p class="st-sub" id="st-ready-sub"></p>
       </div>
-      <div class="st-block" id="st-turn" hidden>
-        <p class="st-seat"><span class="st-seat-pre">هلّق دور</span>رقم <span id="st-seat">1</span></p>
-        <div class="st-digits digits" id="st-digits">2:00</div>
+      <div class="st-block" id="st-live" hidden>
+        <p class="st-label" id="st-live-label"></p>
+        <p class="st-seat" id="st-seat-line"><span class="st-seat-pre">هلّق دور</span>رقم <span id="st-seat">1</span></p>
+        <div class="st-digits digits" id="st-digits">1:30</div>
         <div class="bar st-bar"><span id="st-bar"></span></div>
         <p class="st-status" id="st-status" aria-live="polite"></p>
       </div>
       <div class="st-block" id="st-done" hidden>
-        <p class="st-big" id="st-done-text"></p>
+        <p class="st-big" id="st-done-big"></p>
+        <p class="st-sub" id="st-done-sub"></p>
       </div>
       <div class="st-block" id="st-join" hidden>
         <div class="st-join-card">
@@ -644,15 +682,15 @@ details.panel[open] > summary::after{content:"−"}
       </div>
       <ol class="st-seats" id="st-seats" aria-label="ترتيب الأدوار"></ol>
       <p class="st-q" id="st-q"></p>
-      <p class="st-sub" id="st-first-note"></p>
+      <p class="st-bridge" id="st-bridge" hidden>قبل ما تجاوب: جملة وحدة عن إشي لفتك بحكاية اللي قبلك.</p>
     </section>
 
     <footer class="st-controls" id="st-controls">
-      <button class="btn btn-on" id="st-prev-round" type="button">الجولة السابقة</button>
-      <button class="btn btn-on-strong" id="st-main" type="button">بلّش الأدوار</button>
+      <button class="btn btn-on" id="st-prev" type="button">الفقرة السابقة</button>
+      <button class="btn btn-on-strong" id="st-main" type="button">ابدأ</button>
+      <button class="btn btn-on" id="st-skip" type="button">التالي</button>
       <button class="btn btn-on" id="st-reset" type="button">من جديد</button>
-      <button class="btn btn-on" id="st-next" type="button">التالي</button>
-      <button class="btn btn-on" id="st-next-round" type="button">الجولة التالية</button>
+      <button class="btn btn-on" id="st-nextseg" type="button">الفقرة التالية</button>
       <button class="btn btn-on" id="st-qr-btn" type="button">رمز الدخول</button>
       <button class="btn btn-on" id="st-full" type="button">ملء الشاشة</button>
       <details class="st-settings">
@@ -667,7 +705,7 @@ details.panel[open] > summary::after{content:"−"}
             </div>
           </div>
           <div class="setting">
-            <span class="setting-label" id="lbl-sdur">وقت كل مشارك</span>
+            <span class="setting-label" id="lbl-sdur">وقت كل مشارك بالجولات</span>
             <div class="seg" id="st-dur" role="radiogroup" aria-labelledby="lbl-sdur">
               <button type="button" role="radio" data-sec="60">1:00</button>
               <button type="button" role="radio" data-sec="90">1:30</button>
@@ -676,7 +714,8 @@ details.panel[open] > summary::after{content:"−"}
               <button type="button" role="radio" data-sec="180">3:00</button>
             </div>
           </div>
-          <label class="check"><input type="checkbox" id="st-auto"> انتقال تلقائي للي بعده (5 ثواني بعد ما يخلص الوقت)</label>
+          <label class="check"><input type="checkbox" id="st-auto"> تشغيل تلقائي: الشاشة بتنتقل لحالها (5 ثواني بعد ما يخلص الوقت)</label>
+          <p class="help" id="st-estimate"></p>
           <p class="help">مفاتيح: مسافة = ابدأ/وقّف، ← = التالي، R = من جديد، F = ملء الشاشة.</p>
           <a href="#facilitator">شاشة ميسّر الطاولة</a>
         </div>
@@ -910,7 +949,7 @@ details.panel[open] > summary::after{content:"−"}
   // ------------------------------------------------------------------
   // Views
   // ------------------------------------------------------------------
-  var views = { join: $("#view-join"), play: $("#view-play"), end: $("#view-end"), fac: $("#view-fac"), stage: $("#view-stage") };
+  var views = { join: $("#view-join"), play: $("#view-play"), end: $("#view-end"), card: $("#view-card"), fac: $("#view-fac"), stage: $("#view-stage") };
   function showView(name) {
     Object.keys(views).forEach(function (k) { views[k].hidden = k !== name; });
     try { window.scrollTo(0, 0); } catch (e) {}
@@ -996,11 +1035,10 @@ details.panel[open] > summary::after{content:"−"}
       b.style.setProperty("--pc", "var(--s" + (i + 1) + ")");
       if (i <= player.maxRound) b.classList.add("reached");
       if (i === r) { b.classList.add("current"); b.setAttribute("aria-current", "step"); }
-      b.disabled = i > player.maxRound;
       b.setAttribute("aria-label", "الجولة " + (i + 1) + ": " + gr.title);
       b.addEventListener("click", function () {
-        if (shuffling || i > player.maxRound || i === player.round) return;
-        player.round = i; savePlayer(); renderPlay();
+        if (shuffling || i === player.round) return;
+        player.round = i; player.maxRound = Math.max(player.maxRound, i); savePlayer(); renderPlay();
       });
       pips.appendChild(b);
     });
@@ -1154,7 +1192,7 @@ details.panel[open] > summary::after{content:"−"}
   // ------------------------------------------------------------------
   var F_KEY = "kwh.facilitator.v1";
   var fac = (function () {
-    var d = { table: 1, count: 8, duration: 120, round: 0, names: {}, progress: {}, link: "", perTable: false, revealAll: false, day: dayKey() };
+    var d = { table: 1, count: 8, duration: 90, round: 0, names: {}, progress: {}, link: "", perTable: false, revealAll: false, day: dayKey() };
     var s = store.get(F_KEY, {}) || {};
     Object.keys(d).forEach(function (k) { if (s[k] !== undefined && typeof s[k] === typeof d[k]) d[k] = s[k]; });
     d.table = 1;
@@ -1356,19 +1394,35 @@ details.panel[open] > summary::after{content:"−"}
   $("#toggle-words").addEventListener("click", function () { fac.revealAll = !fac.revealAll; saveFac(); renderFac(); });
   $("#to-player").addEventListener("click", function () { location.hash = ""; route(); });
 
-  // ---- QR code ----
+  // ---- QR codes (qrcode-generator, UTF-8 so Arabic names survive) ----
   var qrLib = null;
   function loadQRLib() {
-    if (window.QRious) return Promise.resolve();
+    if (window.qrcode) return Promise.resolve();
     if (qrLib) return qrLib;
     qrLib = new Promise(function (res, rej) {
       var s = document.createElement("script");
-      s.src = "https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js";
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js";
       s.onload = function () { res(); };
       s.onerror = function () { qrLib = null; rej(new Error("qr")); };
       document.head.appendChild(s);
     });
     return qrLib;
+  }
+  function paintQR(canvas, text, size) {
+    var lib = window.qrcode;
+    if (lib.stringToBytesFuncs && lib.stringToBytesFuncs["UTF-8"]) lib.stringToBytes = lib.stringToBytesFuncs["UTF-8"];
+    var qr = lib(0, "M");
+    qr.addData(text, "Byte");
+    qr.make();
+    var n = qr.getModuleCount(), quiet = 2, cells = n + quiet * 2;
+    var scale = Math.max(2, Math.floor(size / cells)), px = cells * scale;
+    canvas.width = px; canvas.height = px;
+    var ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, px, px);
+    ctx.fillStyle = "#111318";
+    for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) {
+      if (qr.isDark(r, c)) ctx.fillRect((c + quiet) * scale, (r + quiet) * scale, scale, scale);
+    }
   }
   function baseLink() {
     var b = (fac.link || "").trim().replace(/#.*$/, "");
@@ -1382,7 +1436,7 @@ details.panel[open] > summary::after{content:"−"}
       return;
     }
     loadQRLib().then(function () {
-      new window.QRious({ element: canvas, value: value, size: size, padding: Math.round(size / 22), level: "M", background: "#ffffff", foreground: "#111318" });
+      paintQR(canvas, value, size);
       canvas.hidden = false; empty.hidden = true;
     }).catch(function () {
       canvas.hidden = true; empty.hidden = false;
@@ -1425,27 +1479,117 @@ details.panel[open] > summary::after{content:"−"}
   })();
 
   // ------------------------------------------------------------------
-  // Room screen (#stage): one facilitator on a projector runs every
-  // table in lockstep. The screen calls a seat number, and whoever
-  // holds that number at each table speaks.
+  // My card: a contact QR (vCard) built on the phone. Tablemates scan it
+  // with their camera to save the contact. Nothing leaves the device.
   // ------------------------------------------------------------------
-  var S_KEY = "kwh.stage.v1";
+  var C_KEY = "kwh.card.v1";
+  var myCard = store.get(C_KEY, {}) || {};
+  function vcardEsc(v) { return String(v).replace(/\\/g, "\\\\").replace(/\r?\n/g, "\\n").replace(/([,;])/g, "\\$1"); }
+  function vcard(c) {
+    var L = ["BEGIN:VCARD", "VERSION:3.0", "N:;" + vcardEsc(c.name) + ";;;", "FN:" + vcardEsc(c.name)];
+    if (c.job) L.push("TITLE:" + vcardEsc(c.job));
+    if (c.tel) L.push("TEL;TYPE=CELL:" + c.tel.replace(/[^\d+]/g, ""));
+    if (c.link) {
+      if (/@/.test(c.link) && !/^https?:/i.test(c.link)) L.push("EMAIL:" + vcardEsc(c.link));
+      else L.push("URL:" + vcardEsc(/^https?:/i.test(c.link) ? c.link : "https://" + c.link));
+    }
+    L.push("NOTE:" + vcardEsc("تعرّفنا بفعالية «كلمة وراها حكاية»"));
+    L.push("END:VCARD");
+    return L.join("\r\n");
+  }
+  function showCard() {
+    setSuit(player ? player.round : 0);
+    $("#cd-name").value = myCard.name || (player && player.name) || "";
+    $("#cd-job").value = myCard.job || "";
+    $("#cd-tel").value = myCard.tel || "";
+    $("#cd-link").value = myCard.link || "";
+    $("#card-error").hidden = true;
+    var ready = !!(myCard.ready && myCard.name && (myCard.tel || myCard.link));
+    $("#card-form").hidden = ready;
+    $("#card-qr").hidden = !ready;
+    showView("card");
+    if (ready) renderCardQR();
+  }
+  function renderCardQR() {
+    var canvas = $("#cd-canvas"), empty = $("#cd-empty");
+    canvas.hidden = true; empty.hidden = false; empty.textContent = "عم نعمل الرمز…";
+    loadQRLib().then(function () {
+      paintQR(canvas, vcard(myCard), 600);
+      canvas.hidden = false; empty.hidden = true;
+    }).catch(function () {
+      empty.textContent = "ما قدرنا نعمل الرمز. تأكّد إنه في إنترنت وجرّب كمان مرة.";
+    });
+  }
+  $("#card-form").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var c = {
+      name: $("#cd-name").value.trim().slice(0, 40),
+      job: $("#cd-job").value.trim().slice(0, 60),
+      tel: $("#cd-tel").value.trim().slice(0, 20),
+      link: $("#cd-link").value.trim().slice(0, 120)
+    };
+    var err = $("#card-error");
+    if (!c.name) { err.textContent = "اكتب اسمك."; err.hidden = false; $("#cd-name").focus(); return; }
+    if (!c.tel && !c.link) { err.textContent = "اكتب رقم تلفون أو إيميل أو LinkedIn، عشان يقدروا يتواصلوا معك."; err.hidden = false; $("#cd-tel").focus(); return; }
+    c.ready = true;
+    myCard = c;
+    store.set(C_KEY, myCard);
+    $("#card-form").hidden = true;
+    $("#card-qr").hidden = false;
+    renderCardQR();
+  });
+  $("#cd-edit").addEventListener("click", function () { $("#card-qr").hidden = true; $("#card-form").hidden = false; $("#cd-job").focus(); });
+  $("#card-back").addEventListener("click", function () { if (player) showPlay(); else showJoin(); });
+  $("#btn-card").addEventListener("click", showCard);
+  $("#btn-end-card").addEventListener("click", showCard);
+
+  // ------------------------------------------------------------------
+  // Room screen (#stage): one facilitator on a projector runs every table
+  // in lockstep. The evening is a list of segments: a quick intro, the five
+  // word rounds, and a closing "give & get". One press starts a segment and
+  // the screen runs it: 1 minute to draw and prepare, then it calls each
+  // seat number in turn, then 3 minutes of open table talk.
+  // ------------------------------------------------------------------
+  var PREP_SEC = 60, TALK_SEC = 180;
+  var INTRO = { eyebrow: "قبل الجولات", title: "تعارف سريع", per: 30,
+    ready: "كل واحد بيعرّف عن حاله بـ30 ثانية",
+    prompt: "اسمك، شو بتشتغل، وشو بتدوّر عليه هالفترة." };
+  var CLOSE = { eyebrow: "الختام", title: "طلب وعرض", per: 45,
+    ready: "كل واحد: إشي بيقدّمه وإشي بيدوّر عليه",
+    prompt: "45 ثانية لكل واحد: إشي بتقدر تقدّمه لغيرك، وإشي بتدوّر عليه. إذا بتعرف حدا بيقدر يساعد، احكي." };
+  var TALK_PROMPT = "مين مرّ بتجربة مشابهة لحكاية سمعها هالجولة؟ احكوا مع بعض.";
+  var SEGS = [{ kind: "intro" }];
+  GROUPS.forEach(function (g, i) { SEGS.push({ kind: "round", r: i }); });
+  SEGS.push({ kind: "close" });
+  var LAST_SEG = SEGS.length - 1;
+
+  var S_KEY = "kwh.stage.v2";
   var stJoin = false;
   var stg = (function () {
-    var d = { count: 8, duration: 120, round: 0, phase: "intro", done: [], current: 0, auto: true, day: dayKey() };
+    var d = { count: 8, duration: 90, seg: 0, phase: "ready", done: [], current: 0, auto: true, day: dayKey() };
     var s = store.get(S_KEY, {}) || {};
     Object.keys(d).forEach(function (k) { if (s[k] !== undefined && typeof s[k] === typeof d[k]) d[k] = s[k]; });
     if (!Array.isArray(d.done)) d.done = [];
     d.count = clamp(d.count | 0, 2, MAX_SEATS);
-    d.round = clamp(d.round | 0, 0, LAST);
-    if ([60, 90, 120, 150, 180].indexOf(d.duration) < 0) d.duration = 120;
-    if (["intro", "turns", "done"].indexOf(d.phase) < 0) d.phase = "intro";
-    if (d.day !== dayKey()) { d.day = dayKey(); d.round = 0; d.phase = "intro"; d.done = []; d.current = 0; }
+    d.seg = clamp(d.seg | 0, 0, LAST_SEG);
+    if ([60, 90, 120, 150, 180].indexOf(d.duration) < 0) d.duration = 90;
+    if (["ready", "prep", "turns", "talk", "done"].indexOf(d.phase) < 0) d.phase = "ready";
+    if (d.day !== dayKey()) { d.day = dayKey(); d.seg = 0; d.phase = "ready"; d.done = []; d.current = 0; }
     return d;
   })();
   function saveStage() { store.set(S_KEY, stg); }
+  function seg() { return SEGS[stg.seg]; }
+  function isRoundSeg() { return seg().kind === "round"; }
+  function segInfo(sg) {
+    if (sg.kind === "intro") return INTRO;
+    if (sg.kind === "close") return CLOSE;
+    return { eyebrow: "الجولة " + (sg.r + 1) + " من " + GROUPS.length, title: GROUPS[sg.r].title, per: 0 };
+  }
+  function isLive() { return stg.phase === "prep" || stg.phase === "turns" || stg.phase === "talk"; }
+  function perTurn() { return isRoundSeg() ? stg.duration : segInfo(seg()).per; }
+  function phaseSec() { return stg.phase === "prep" ? PREP_SEC : stg.phase === "talk" ? TALK_SEC : perTurn(); }
   function stOrder() {
-    var n = stg.count, start = stg.round % n, out = [];
+    var n = stg.count, sg = seg(), start = sg.kind === "round" ? sg.r % n : 0, out = [];
     for (var i = 0; i < n; i++) out.push(((start + i) % n) + 1);
     return out;
   }
@@ -1459,33 +1603,34 @@ details.panel[open] > summary::after{content:"−"}
   }
   function stNormalize() {
     stg.done = stg.done.filter(function (x) { return x >= 1 && x <= stg.count; });
+    if ((stg.phase === "prep" || stg.phase === "talk") && !isRoundSeg()) stg.phase = "ready";
     if (stg.phase === "turns" && !(stg.current >= 1 && stg.current <= stg.count)) {
       stg.current = stNext();
-      if (!stg.current) stg.phase = "done";
+      if (!stg.current) stg.phase = isRoundSeg() ? "talk" : "done";
     }
   }
 
   var graceIv = null, graceLeft = 0;
   function cancelGrace() { if (graceIv) { clearInterval(graceIv); graceIv = null; } graceLeft = 0; }
+  function graceText() {
+    if (stg.phase === "prep") return "الأدوار بتبلّش بعد " + graceLeft;
+    if (stg.phase === "talk") return "الجولة بتخلص بعد " + graceLeft;
+    var nx = stNext();
+    if (nx) return "رقم " + nx + " بعد " + graceLeft;
+    return isRoundSeg() ? "النقاش المفتوح بعد " + graceLeft : "الفقرة بتخلص بعد " + graceLeft;
+  }
   function stStatus(rem) {
     var txt = "";
-    if (rem <= 0) {
-      txt = "خلص الوقت";
-      if (graceLeft > 0) {
-        var nx = stNext();
-        txt += nx ? " · رقم " + nx + " بعد " + graceLeft : " · الجولة بتخلص بعد " + graceLeft;
-      }
-    } else if (rem <= 15000 && stTimer.running) {
-      txt = "آخر ثواني";
-    }
+    if (rem <= 0) txt = graceLeft > 0 ? "خلص الوقت · " + graceText() : "خلص الوقت";
+    else if (rem <= 15000 && stTimer.running) txt = "آخر ثواني";
     $("#st-status").textContent = txt;
   }
   var stTimer = makeTimer(function (rem, t) {
     $("#st-digits").textContent = fmtClock(rem);
     $("#st-bar").style.width = (clamp(rem / (t.duration * 1000), 0, 1) * 100) + "%";
-    $("#view-stage").classList.toggle("over", rem <= 0);
+    views.stage.classList.toggle("over", rem <= 0 && isLive());
     stStatus(rem);
-    if (stg.phase === "turns") $("#st-main").textContent = t.running ? "وقّف" : (t.elapsed() > 0 ? "كمّل" : "ابدأ");
+    syncMainLabel();
   }, function () {
     chime(); vibrate([220, 120, 220]);
     if (stg.auto) startGrace();
@@ -1496,100 +1641,136 @@ details.panel[open] > summary::after{content:"−"}
     stStatus(-1);
     graceIv = setInterval(function () {
       graceLeft -= 1;
-      if (graceLeft <= 0) { cancelGrace(); stAdvance(true); } else stStatus(-1);
+      if (graceLeft <= 0) { cancelGrace(); stSkip(); } else stStatus(-1);
     }, 1000);
   }
-  function stAdvance(autoStart) {
+  function stEnter(phase, start) {
     cancelGrace();
-    if (stg.current && stg.done.indexOf(stg.current) < 0) stg.done.push(stg.current);
-    var nx = stNext();
+    stg.phase = phase;
+    if (phase === "turns") { stg.done = []; stg.current = stOrder()[0]; }
+    if (phase === "ready" || phase === "done") stg.current = 0;
+    stTimer.setDuration(phaseSec());
     stTimer.reset();
-    if (!nx) { stg.phase = "done"; stg.current = 0; }
-    else { stg.current = nx; if (autoStart) { stTimer.start(); keepAwake(); } }
+    if (start && isLive()) { stTimer.start(); keepAwake(); }
     saveStage(); renderStage();
   }
-  function stBegin() {
+  // Move one step forward and start whatever comes next.
+  function stSkip() {
+    unlockAudio();
     cancelGrace();
-    stg.phase = "turns"; stg.done = []; stg.current = stOrder()[0];
+    var ph = stg.phase;
+    if (ph === "prep") { stEnter("turns", true); return; }
+    if (ph === "talk") { stEnter("done", false); return; }
+    if (ph !== "turns") return;
+    if (stg.current && stg.done.indexOf(stg.current) < 0) stg.done.push(stg.current);
+    var nx = stNext();
+    if (!nx) { stEnter(isRoundSeg() ? "talk" : "done", true); return; }
+    stg.current = nx;
     stTimer.reset(); stTimer.start(); keepAwake();
     saveStage(); renderStage();
   }
-  function stGoRound(i) {
-    cancelGrace();
-    stg.round = clamp(i, 0, LAST); stg.phase = "intro"; stg.done = []; stg.current = 0;
-    stTimer.reset(); saveStage(); renderStage();
+  function stGoSeg(i) {
+    stJoin = false;
+    stg.seg = clamp(i, 0, LAST_SEG);
+    stg.done = [];
+    stEnter("ready", false);
   }
   function stMain() {
     unlockAudio();
     if (stJoin) { stJoin = false; renderStage(); return; }
-    if (stg.phase === "intro") { stBegin(); return; }
-    if (stg.phase === "turns") {
-      cancelGrace();
-      if (stTimer.running) stTimer.pause(); else { stTimer.start(); keepAwake(); }
-      return;
-    }
-    if (stg.phase === "done" && stg.round < LAST) stGoRound(stg.round + 1);
+    var ph = stg.phase;
+    if (ph === "ready") { stEnter(isRoundSeg() ? "prep" : "turns", true); return; }
+    if (ph === "done") { if (stg.seg < LAST_SEG) stGoSeg(stg.seg + 1); return; }
+    cancelGrace();
+    if (stTimer.running) stTimer.pause(); else { stTimer.start(); keepAwake(); }
+    renderStage();
+  }
+  function syncMainLabel() {
+    var b = $("#st-main"), ph = stg.phase;
+    b.hidden = false;
+    if (stJoin) b.textContent = "رجوع";
+    else if (ph === "ready") b.textContent = "ابدأ";
+    else if (ph === "done") { if (stg.seg < LAST_SEG) b.textContent = "الفقرة التالية"; else b.hidden = true; }
+    else b.textContent = stTimer.running ? "وقّف" : (stTimer.elapsed() > 0 ? "كمّل" : "ابدأ");
   }
 
   function renderStage() {
     stNormalize();
-    var g = GROUPS[stg.round], ord = stOrder(), ph = stg.phase;
-    setSuit(stg.round);
+    var sg = seg(), info = segInfo(sg), ph = stg.phase, round = sg.kind === "round";
+    var g = round ? GROUPS[sg.r] : null, live = isLive();
+    setSuit(round ? sg.r : (sg.kind === "intro" ? 0 : LAST));
     views.stage.classList.toggle("turns", ph === "turns" && !stJoin);
-    if (stTimer.duration !== stg.duration) stTimer.setDuration(stg.duration);
-    $("#st-round-num").textContent = "الجولة " + (stg.round + 1) + " من " + GROUPS.length;
-    $("#st-round-title").textContent = g.title;
-    $("#st-intro-round").textContent = "الجولة " + (stg.round + 1);
+    if (stTimer.duration !== phaseSec()) stTimer.setDuration(phaseSec());
+    $("#st-eyebrow").textContent = info.eyebrow;
+    $("#st-title").textContent = info.title;
 
     $("#st-join").hidden = !stJoin;
-    $("#st-intro").hidden = stJoin || ph !== "intro";
-    $("#st-turn").hidden = stJoin || ph !== "turns";
+    $("#st-ready").hidden = stJoin || ph !== "ready";
+    $("#st-live").hidden = stJoin || !live;
     $("#st-done").hidden = stJoin || ph !== "done";
-    $("#st-q").hidden = stJoin || ph === "done";
-    $("#st-q").textContent = g.question;
-    $("#st-first-note").hidden = stJoin || ph !== "intro";
-    $("#st-first-note").textContent = "بنبلّش من رقم " + ord[0] + " على كل الطاولات، وبعدين بالترتيب.";
-    $("#st-done-text").textContent = stg.round === LAST ? "خلصنا! شكرًا على الحكايات." : "الكل حكى. خلصت الجولة " + (stg.round + 1) + ".";
+
+    if (ph === "ready") {
+      $("#st-ready-big").textContent = round ? "افتحوا الجولة " + (sg.r + 1) + " على تلفوناتكم" : info.ready;
+      $("#st-ready-sub").textContent = round ? "لما نبلّش: اكبسوا «اخلط»، وعندكم دقيقة تحضّروا جوابكم." : info.prompt;
+    }
+    $("#st-live-label").hidden = ph === "turns";
+    $("#st-live-label").textContent = ph === "prep" ? "اكبسوا «اخلط» وحضّروا جوابكم" : "نقاش مفتوح على الطاولة";
+    $("#st-seat-line").hidden = ph !== "turns";
     if (ph === "turns") $("#st-seat").textContent = stg.current;
+    if (ph === "done") {
+      var nextSeg = stg.seg < LAST_SEG ? SEGS[stg.seg + 1] : null;
+      $("#st-done-big").textContent = sg.kind === "close" ? "خلصنا! شكرًا على الحكايات." : (round ? "خلصت الجولة " + (sg.r + 1) : "خلصنا التعارف");
+      $("#st-done-sub").textContent = nextSeg ? "الجاي: " + segInfo(nextSeg).title :
+        "بدكم تضلّوا على تواصل؟ افتحوا «بطاقتي» على التلفون، وخلّوا الطاولة تمسح الرمز.";
+    }
+
+    var q = "";
+    if (round && (ph === "ready" || ph === "prep" || ph === "turns")) q = g.question;
+    else if (round && ph === "talk") q = TALK_PROMPT;
+    else if (!round && ph === "turns") q = info.prompt;
+    $("#st-q").textContent = q;
+    $("#st-q").hidden = stJoin || !q;
+    $("#st-bridge").hidden = stJoin || !(round && ph === "turns" && stg.current !== stOrder()[0]);
 
     var seats = $("#st-seats");
     seats.textContent = "";
-    seats.hidden = stJoin || ph === "intro";
-    ord.forEach(function (seat) {
+    seats.hidden = stJoin || ph !== "turns";
+    stOrder().forEach(function (seat) {
       var li = el("li", null, String(seat));
-      if (seat === stg.current && ph === "turns") li.className = "now";
-      else if (ph === "done" || stg.done.indexOf(seat) >= 0) li.className = "done";
+      if (seat === stg.current) li.className = "now";
+      else if (stg.done.indexOf(seat) >= 0) li.className = "done";
       seats.appendChild(li);
     });
 
-    var main = $("#st-main");
-    main.hidden = false;
-    if (stJoin) main.textContent = "رجوع";
-    else if (ph === "intro") main.textContent = "بلّش الأدوار";
-    else if (ph === "turns") main.textContent = stTimer.running ? "وقّف" : (stTimer.elapsed() > 0 ? "كمّل" : "ابدأ");
-    else if (stg.round < LAST) main.textContent = "الجولة التالية";
-    else main.hidden = true;
-    $("#st-reset").hidden = stJoin || ph !== "turns";
-    $("#st-next").hidden = stJoin || ph !== "turns";
-    $("#st-prev-round").disabled = stg.round === 0;
-    $("#st-next-round").disabled = stg.round === LAST;
+    $("#st-skip").hidden = stJoin || !live;
+    $("#st-skip").textContent = ph === "prep" ? "بلّشوا الأدوار" : ph === "talk" ? "خلّص النقاش" : "التالي";
+    $("#st-reset").hidden = stJoin || !live;
+    $("#st-prev").disabled = stg.seg === 0;
+    $("#st-nextseg").disabled = stg.seg === LAST_SEG;
+    $("#st-nextseg").hidden = ph === "done" && !stJoin;
     $("#st-qr-btn").textContent = stJoin ? "سكّر الرمز" : "رمز الدخول";
+    syncMainLabel();
 
     $("#st-count").textContent = stg.count;
     document.querySelectorAll("#st-dur button").forEach(function (b) {
       b.setAttribute("aria-checked", String(Number(b.dataset.sec) === stg.duration));
     });
     $("#st-auto").checked = stg.auto;
+    var n = stg.count, roundMin = Math.round((PREP_SEC + n * stg.duration + TALK_SEC) / 60);
+    var introMin = Math.round(n * INTRO.per / 60), closeMin = Math.round(n * CLOSE.per / 60);
+    $("#st-estimate").textContent = "كل جولة ≈ " + roundMin + " دقيقة (دقيقة تحضير، " + n + " × " + fmtDur(stg.duration) +
+      "، و3 دقائق نقاش). التعارف ≈ " + introMin + " والختام ≈ " + closeMin + ". كل البرنامج ≈ " +
+      (introMin + GROUPS.length * roundMin + closeMin) + " دقيقة. بدك أقصر؟ اقفز جولات بـ«الفقرة التالية».";
     if (stJoin) drawQRTo($("#st-qr"), $("#st-qr-empty"), baseLink(), 720);
   }
 
   function showStage() { showView("stage"); renderStage(); stWake(); }
 
   $("#st-main").addEventListener("click", stMain);
-  $("#st-next").addEventListener("click", function () { unlockAudio(); stAdvance(stg.auto); });
-  $("#st-reset").addEventListener("click", function () { cancelGrace(); stTimer.reset(); });
-  $("#st-prev-round").addEventListener("click", function () { stJoin = false; stGoRound(stg.round - 1); });
-  $("#st-next-round").addEventListener("click", function () { stJoin = false; stGoRound(stg.round + 1); });
+  $("#st-skip").addEventListener("click", stSkip);
+  $("#st-reset").addEventListener("click", function () { cancelGrace(); stTimer.reset(); renderStage(); });
+  $("#st-prev").addEventListener("click", function () { stGoSeg(stg.seg - 1); });
+  $("#st-nextseg").addEventListener("click", function () { stGoSeg(stg.seg + 1); });
   $("#st-qr-btn").addEventListener("click", function () { stJoin = !stJoin; renderStage(); });
   document.querySelectorAll("[data-sset]").forEach(function (b) {
     b.addEventListener("click", function () {
@@ -1613,7 +1794,7 @@ details.panel[open] > summary::after{content:"−"}
 
   var idleT = null;
   function stWake() {
-    var v = $("#view-stage");
+    var v = views.stage;
     v.classList.remove("idle");
     clearTimeout(idleT);
     idleT = setTimeout(function () { v.classList.add("idle"); }, 4000);
@@ -1628,8 +1809,8 @@ details.panel[open] > summary::after{content:"−"}
     var isSpace = e.key === " " || e.code === "Space";
     if ((tag === "BUTTON" || tag === "SUMMARY" || tag === "A") && (isSpace || e.key === "Enter")) return;
     if (isSpace) { e.preventDefault(); stMain(); }
-    else if (e.key === "ArrowLeft" || e.key === "n" || e.key === "N") { if (stg.phase === "turns" && !stJoin) { unlockAudio(); stAdvance(stg.auto); } }
-    else if (e.key === "r" || e.key === "R") { if (stg.phase === "turns") { cancelGrace(); stTimer.reset(); } }
+    else if (e.key === "ArrowLeft" || e.key === "n" || e.key === "N") { if (isLive() && !stJoin) stSkip(); }
+    else if (e.key === "r" || e.key === "R") { if (isLive()) { cancelGrace(); stTimer.reset(); renderStage(); } }
     else if (e.key === "f" || e.key === "F") { toggleFull(); }
   });
 
