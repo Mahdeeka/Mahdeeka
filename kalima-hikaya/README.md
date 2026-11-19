@@ -16,7 +16,7 @@
 ## الروابط
 
 - المشاركين (الرابط اللي بالـQR): `https://mahdeeka.github.io/Mahdeeka/kalima-hikaya/`
-  بيشتغل بعد ما يتفعّل GitHub Pages: Settings ← Pages ← Deploy from a branch ← الفرع `ccr-750e8a47-d173lr` و `/ (root)` ← Save.
+  منشور على GitHub Pages من الفرع `gh-pages`. بعد أي تعديل: حدّثوا `gh-pages` بنفس التغيير (مثلًا `git push origin HEAD:gh-pages`).
 - رابط احتياط على Claude: `https://claude.ai/artifact/HF9xZzyCsDaFTbw6eo41fK`
 - شاشة القاعة (بروجكتر): نفس الرابط وبآخره `#stage`
 - شاشة المدير: من نفس الرابط ← «مدير طاولة» (أو الرابط وبآخره `#manager`)
