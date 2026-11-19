@@ -1,0 +1,2317 @@
+<title>كلمة وراها حكاية</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&family=Lalezar&family=Readex+Pro:wght@300..700&display=swap">
+<style>
+/* Layout: phone-first "card table". One column: round header, one word card, its question.
+   The facilitator screen opens into two columns (turn timer | the table) from 900px.
+   Each of the 5 rounds is a card suit with its own color, and the page takes on the current suit. */
+:root{
+  --bg:#ECEEF3;
+  --surface:#FFFFFF;
+  --surface-2:#F4F5F9;
+  --fg:#171A24;
+  --muted:#596074;
+  --line:#D5D9E3;
+  --s1:#2D4AA3; --s2:#2A7A5C; --s3:#A2650E; --s4:#AD3E29; --s5:#723788;
+  --s1-ink:#2D4AA3; --s2-ink:#24694F; --s3-ink:#8A560B; --s4-ink:#A13A26; --s5-ink:#6A3380;
+  --suit:var(--s1);
+  --suit-ink:var(--s1-ink);
+  --on-suit:#FFFFFF;
+  --on-suit-soft:rgba(255,255,255,.80);
+  --on-suit-faint:rgba(255,255,255,.17);
+  --paper:#FFFFFF;
+  --ink-on-paper:#14161E;
+  --muted-on-paper:#596074;
+  --warn:#9E6A06;
+  --danger:#BF3426;
+  --focus:#2D4AA3;
+  --shadow:0 1px 2px rgba(23,26,36,.06),0 10px 28px rgba(23,26,36,.09);
+  --card-shadow:0 2px 4px rgba(23,26,36,.10),0 24px 44px -14px rgba(23,26,36,.38);
+  --font-ui:"Readex Pro","Noto Sans Arabic","Segoe UI",Tahoma,system-ui,sans-serif;
+  --font-word:"Lalezar","Readex Pro","Noto Sans Arabic",Tahoma,sans-serif;
+  --font-logo:"Aref Ruqaa","Noto Naskh Arabic","Traditional Arabic",serif;
+  --r-lg:24px; --r-md:18px; --r-sm:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1117; --surface:#181B24; --surface-2:#20242F; --fg:#ECEEF4; --muted:#9AA1B5; --line:#2C313E;
+    --s1:#4864C4; --s2:#2E7E5F; --s3:#A3691A; --s4:#C2523C; --s5:#8B52A3;
+    --s1-ink:#93A9F2; --s2-ink:#74C9A5; --s3-ink:#E6B465; --s4-ink:#F09382; --s5-ink:#CB98E0;
+    --warn:#E7AE45; --danger:#F06A58; --focus:#93A9F2;
+    --shadow:0 1px 2px rgba(0,0,0,.45),0 10px 28px rgba(0,0,0,.35);
+    --card-shadow:0 2px 4px rgba(0,0,0,.45),0 24px 44px -14px rgba(0,0,0,.75);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1117; --surface:#181B24; --surface-2:#20242F; --fg:#ECEEF4; --muted:#9AA1B5; --line:#2C313E;
+  --s1:#4864C4; --s2:#2E7E5F; --s3:#A3691A; --s4:#C2523C; --s5:#8B52A3;
+  --s1-ink:#93A9F2; --s2-ink:#74C9A5; --s3-ink:#E6B465; --s4-ink:#F09382; --s5-ink:#CB98E0;
+  --warn:#E7AE45; --danger:#F06A58; --focus:#93A9F2;
+  --shadow:0 1px 2px rgba(0,0,0,.45),0 10px 28px rgba(0,0,0,.35);
+  --card-shadow:0 2px 4px rgba(0,0,0,.45),0 24px 44px -14px rgba(0,0,0,.75);
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg)}
+body{color:var(--fg);font-family:var(--font-ui);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+#app{min-height:100%}
+h1,h2,h3,p{margin:0}
+h1,h2,h3{text-wrap:balance;line-height:1.3}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+.view{max-width:560px;margin-inline:auto;padding-block:20px 44px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+.view.wide{max-width:1180px}
+.view > *{min-width:0}
+
+/* ---------- shared pieces ---------- */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:20px}
+.eyebrow{font-size:13px;font-weight:600;color:var(--suit-ink);letter-spacing:.01em}
+.help{font-size:14px;color:var(--muted);line-height:1.6}
+.center{text-align:center}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.row > .btn{flex:1 1 160px}
+
+.btn{appearance:none;border:1.5px solid transparent;border-radius:999px;padding:11px 22px;font-weight:600;font-size:16px;line-height:1.3;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:48px;text-decoration:none;transition:transform .12s ease,background-color .2s ease,border-color .2s ease,opacity .2s ease}
+.btn:active{transform:scale(.97)}
+.btn svg{flex:none}
+.btn-primary{background:var(--suit);color:var(--on-suit)}
+.btn-secondary{background:var(--surface);border-color:var(--line);color:var(--fg)}
+.btn-big{min-height:60px;font-size:18px;padding-inline:28px;width:100%}
+.btn:disabled{opacity:.6;cursor:default;transform:none}
+.btn-text{appearance:none;border:0;background:none;padding:8px 4px;color:var(--suit-ink);font-weight:600;font-size:15px;cursor:pointer;text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1.5px}
+.icon{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+input[type="text"],input[type="url"],input[type="number"]{font:inherit;color:var(--fg);background:var(--surface-2);border:1.5px solid var(--line);border-radius:var(--r-sm);padding:11px 14px;min-height:48px;width:100%;transition:border-color .15s ease}
+input[type="text"]:focus,input[type="url"]:focus,input[type="number"]:focus{outline:none;border-color:var(--suit-ink)}
+input::placeholder{color:var(--muted);opacity:.8}
+input[type="number"]{-moz-appearance:textfield;appearance:textfield}
+input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+.stepper{display:inline-flex;align-items:center;border:1.5px solid var(--line);border-radius:var(--r-sm);background:var(--surface-2);overflow:hidden;width:max-content}
+.stepper button{appearance:none;border:0;background:none;width:48px;height:46px;font-size:22px;line-height:1;cursor:pointer;color:var(--fg)}
+.stepper button:active{background:var(--line)}
+.stepper input,.stepper output{width:64px;min-height:46px;border:0;border-radius:0;background:transparent;text-align:center;font-weight:700;font-size:18px;font-variant-numeric:tabular-nums;padding:0;display:grid;place-items:center}
+
+/* ---------- join ---------- */
+.brand{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding-top:8px}
+.brand-row{display:flex;align-items:center;gap:12px}
+.logo-mark{width:58px;height:58px;flex:none}
+.lm-back{fill:var(--s4)}
+.lm-front{fill:var(--s1)}
+.lm-bubble{fill:var(--on-suit)}
+.logo{font-family:var(--font-logo);font-weight:700;font-size:clamp(38px,10vw,50px);line-height:1.25;color:var(--fg)}
+.tagline{font-size:17px;color:var(--muted);max-width:34ch}
+
+.join-form{display:flex;flex-direction:column;gap:22px}
+.field{display:flex;flex-direction:column;gap:8px;border:0;margin:0;padding:0;min-width:0}
+.field > label,.field > legend{font-weight:600;font-size:15px;padding:0}
+.field > legend{margin-bottom:8px}
+.seat-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.seat-grid input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.seat-grid label{display:grid;place-items:center;height:52px;border-radius:var(--r-sm);border:1.5px solid var(--line);background:var(--surface-2);font-weight:700;font-size:19px;font-variant-numeric:tabular-nums;cursor:pointer;transition:background-color .15s ease,color .15s ease,border-color .15s ease}
+.seat-grid input:checked + label{background:var(--suit);border-color:var(--suit);color:var(--on-suit)}
+.seat-grid input:disabled + label{cursor:not-allowed;opacity:.55;background:transparent;border-style:dashed;line-height:1.1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.seat-grid label small{font-size:11px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-inline:3px}
+.seat-grid label.taken{opacity:.55;border-style:dashed;background:transparent;cursor:not-allowed}
+.seat-live:empty{display:none}
+.seat-live{font-size:13.5px;font-weight:600;color:var(--suit-ink)}
+.mg-live:empty{display:none}
+.mg-live{font-size:14.5px;font-weight:600;color:var(--suit-ink)}
+.seat-status{padding-inline:8px;font-size:12.5px;color:var(--muted)}
+.seat-status.in{color:var(--suit-ink);font-weight:600}
+.st-joined:empty{display:none}
+.st-joined{font-weight:700;font-size:clamp(16px,min(2vw,3vh),28px)}
+.seat-grid input:focus-visible + label{outline:3px solid var(--focus);outline-offset:2px}
+.form-error{color:var(--danger);font-weight:600;font-size:15px}
+
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;counter-reset:step}
+.steps li{display:grid;grid-template-columns:30px minmax(0,1fr);gap:12px;align-items:start;color:var(--muted);font-size:15px;counter-increment:step}
+.steps li::before{content:counter(step);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--surface);border:1.5px solid var(--line);color:var(--fg);font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.foot{display:flex;justify-content:center;padding-top:4px}
+.quiet-link{color:var(--muted);font-size:14px;text-underline-offset:4px}
+
+/* ---------- play ---------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.who{display:flex;align-items:center;gap:12px;min-width:0}
+.avatar{width:42px;height:42px;border-radius:50%;flex:none;display:grid;place-items:center;background:var(--suit);color:var(--on-suit);font-weight:700;font-size:18px;transition:background-color .3s ease}
+.who-text{display:flex;flex-direction:column;min-width:0;line-height:1.35}
+.who-text strong{font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.who-text span{font-size:14px;color:var(--muted)}
+
+.pips{display:flex;gap:6px}
+.pip{flex:1;appearance:none;border:0;background:none;padding:10px 0;cursor:pointer}
+.pip::before{content:"";display:block;height:7px;border-radius:99px;background:var(--pc);opacity:.2;transition:opacity .2s ease,transform .2s ease}
+.pip.reached::before{opacity:.55}
+.pip.current::before{opacity:1;transform:scaleY(1.45)}
+.pip:disabled{cursor:default}
+
+.round-head{display:flex;flex-direction:column;gap:6px}
+.round-title{font-size:clamp(24px,6.5vw,30px);font-weight:700}
+.round-desc{color:var(--muted);font-size:15.5px}
+
+.stage{display:grid;place-items:center;padding-block:2px 6px}
+.card{width:min(100%,318px);aspect-ratio:5/6;perspective:1400px}
+.card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .62s cubic-bezier(.2,.75,.25,1)}
+.card.flipped .card-inner{transform:rotateY(180deg)}
+.card-inner.instant{transition:none}
+.card-side{position:absolute;inset:0;border-radius:var(--r-lg);-webkit-backface-visibility:hidden;backface-visibility:hidden;background-color:var(--suit);color:var(--on-suit);box-shadow:var(--card-shadow);overflow:hidden;transition:background-color .3s ease}
+.card-back{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;
+  background-image:repeating-linear-gradient(135deg,var(--on-suit-faint) 0 1.5px,transparent 1.5px 13px)}
+.card-back::before{content:"";position:absolute;inset:12px;border:1.5px solid var(--on-suit-soft);border-radius:15px;opacity:.55}
+.back-bubble{width:58%;height:auto;overflow:visible}
+.back-bubble path{fill:var(--suit);stroke:var(--on-suit);stroke-width:3}
+.back-bubble text{fill:var(--on-suit);font-family:var(--font-word);font-size:46px}
+.back-label{position:relative;font-family:var(--font-logo);font-size:24px;line-height:1.3}
+.back-round{position:relative;font-size:14px;color:var(--on-suit-soft)}
+.card-face{transform:rotateY(180deg);display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:20px 20px 18px;gap:8px}
+.face-top{display:flex;justify-content:space-between;gap:8px;font-size:13.5px;font-weight:600}
+.tag{border:1.5px solid var(--on-suit-soft);border-radius:99px;padding:2px 11px;font-variant-numeric:tabular-nums}
+.card-word{align-self:center;justify-self:center;text-align:center;font-family:var(--font-word);font-weight:400;font-size:clamp(38px,12vw,54px);line-height:1.3;text-wrap:balance;overflow-wrap:anywhere}
+.face-bottom{font-size:14px;color:var(--on-suit-soft);text-align:center}
+.card.shuffling{animation:jiggle .16s ease-in-out infinite alternate}
+.card.shuffling .card-word{opacity:.82}
+.card.landed{animation:land .55s cubic-bezier(.2,1.5,.4,1)}
+@keyframes jiggle{from{transform:rotate(-1.3deg)}to{transform:rotate(1.3deg)}}
+@keyframes land{0%{transform:scale(.96)}55%{transform:scale(1.05)}100%{transform:scale(1)}}
+
+.draw{display:flex;flex-direction:column;gap:10px}
+.question-block{display:flex;flex-direction:column;gap:14px;animation:rise .45s ease both}
+.question{font-size:clamp(19px,5vw,21px);font-weight:600;line-height:1.65}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---------- end ---------- */
+.end-head{display:flex;flex-direction:column;gap:8px}
+.end-title{font-family:var(--font-logo);font-size:clamp(34px,9vw,44px);font-weight:700}
+.top-actions{display:flex;gap:14px;flex:none}
+.role-switch{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--surface-2);border:1.5px solid var(--line);border-radius:14px;padding:5px}
+.role-switch button{appearance:none;border:0;background:none;border-radius:10px;min-height:46px;font-weight:700;font-size:16px;cursor:pointer;color:var(--muted)}
+.role-switch button[aria-pressed="true"]{background:var(--suit);color:var(--on-suit)}
+.role-note:empty{display:none}
+.join-step{display:flex;flex-direction:column;gap:20px}
+.step-q{font-size:20px;font-weight:700;line-height:1.4}
+.stepper.big button{width:64px;height:64px;font-size:28px}
+.stepper.big input{width:110px;min-height:64px;font-size:34px}
+.confirm-table{font-family:var(--font-word);font-size:clamp(56px,18vw,84px);line-height:1.15;color:var(--suit-ink);text-align:center}
+.confirm-box{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.table-chip{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface-2);border-radius:var(--r-sm);padding:8px 14px}
+.table-chip strong{font-size:18px}
+.join-banner{display:flex;flex-direction:column;gap:4px;border-color:var(--suit)}
+.jb-line{font-size:19px;font-weight:700;line-height:1.4}
+.jb-line strong{font-family:var(--font-word);font-weight:400;font-size:44px;line-height:1.1;color:var(--suit-ink);vertical-align:middle;margin-inline-start:6px}
+.join-banner .btn-text{align-self:flex-start}
+.field-label{font-weight:600;font-size:15px}
+.mg-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.mg-table{font-family:var(--font-word);font-weight:400;font-size:clamp(40px,11vw,54px);line-height:1.15;color:var(--suit-ink)}
+.say{background:var(--surface-2);border-radius:var(--r-sm);padding:12px 14px;font-weight:600;font-size:16.5px;line-height:1.65}
+.say::before{content:"قول للطاولة";display:block;font-size:12.5px;font-weight:700;color:var(--suit-ink);margin-bottom:2px}
+.mg-controls{display:flex;flex-wrap:wrap;gap:10px}
+.mg-controls .btn{flex:1 1 110px}
+.mg-name-in{margin-top:4px}
+.seat-me{font-size:12px;font-weight:700;color:var(--muted);margin-inline-start:6px}
+.card-qr{display:flex;flex-direction:column;align-items:center;gap:14px}
+.card-qr .qr-tile canvas{max-width:300px}
+.word-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.word-list li{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:10px 12px}
+.mini-card{flex:none;min-width:116px;max-width:52%;text-align:center;background:var(--pc);color:var(--on-suit);border-radius:12px;padding:8px 12px 4px;font-family:var(--font-word);font-size:22px;line-height:1.35}
+.mini-card.empty{font-family:var(--font-ui);font-size:14px;padding:12px;opacity:.55}
+.wl-text{display:flex;flex-direction:column;min-width:0;line-height:1.4}
+.wl-text small{color:var(--muted);font-size:13px}
+.wl-text span{font-weight:600}
+
+/* ---------- participant timer overlay ---------- */
+.overlay{position:fixed;inset:0;z-index:20;background:var(--suit);color:var(--on-suit);display:flex;justify-content:center;overflow-y:auto;
+  padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.overlay-inner{width:100%;max-width:520px;display:flex;flex-direction:column;gap:18px}
+.overlay-top{display:flex;align-items:center;justify-content:space-between}
+.overlay-top p{font-weight:600;color:var(--on-suit-soft)}
+.icon-btn{appearance:none;border:1.5px solid var(--on-suit-soft);background:none;color:var(--on-suit);width:46px;height:46px;border-radius:50%;display:grid;place-items:center;cursor:pointer}
+.pt-word{font-family:var(--font-word);font-size:clamp(34px,10vw,48px);line-height:1.3;text-align:center;margin-top:8px}
+.pt-digits{font-size:clamp(88px,30vw,150px);font-weight:600;line-height:1;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.pt-status{text-align:center;font-weight:700;font-size:20px;min-height:32px}
+.overlay .bar{background:var(--on-suit-faint);border-color:transparent}
+.overlay .bar span{background:var(--on-suit)}
+.overlay.over .pt-digits{animation:blink 1s steps(2,start) infinite}
+@keyframes blink{50%{opacity:.45}}
+.pt-adjust{display:flex;justify-content:center;gap:10px}
+.btn-on{background:var(--on-suit-faint);color:var(--on-suit);border-color:var(--on-suit-soft)}
+.btn-on-strong{background:var(--on-suit);color:var(--ink-on-paper);border-color:var(--on-suit)}
+.pt-adjust .btn{min-height:42px;padding:8px 16px;font-size:15px}
+
+/* ---------- timer (shared) ---------- */
+.bar{height:10px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden;position:relative}
+.bar span{position:absolute;inset-block:0;inset-inline-start:0;width:100%;background:var(--suit);border-radius:inherit;transition:width .2s linear}
+.digits{direction:ltr;unicode-bidi:isolate}
+
+/* ---------- facilitator ---------- */
+.fac-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.fac-title{font-size:clamp(26px,5vw,32px);font-weight:700}
+.settings{display:flex;flex-wrap:wrap;gap:18px 32px;align-items:flex-start}
+.setting{display:flex;flex-direction:column;gap:7px;min-width:0}
+.setting-label{font-size:14px;font-weight:600;color:var(--muted)}
+.seg{display:inline-flex;flex-wrap:wrap;border:1.5px solid var(--line);border-radius:var(--r-sm);overflow:hidden;background:var(--surface-2)}
+.seg button{appearance:none;border:0;background:none;padding:0 13px;min-height:46px;cursor:pointer;font-weight:600;font-variant-numeric:tabular-nums;direction:ltr}
+.seg button[aria-checked="true"]{background:var(--suit);color:var(--on-suit)}
+.settings-help{flex-basis:100%}
+
+.round-tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:thin}
+@media (min-width:900px){.round-tabs{flex-wrap:wrap;overflow:visible}}
+.tab{flex:0 0 auto;appearance:none;display:flex;align-items:center;gap:9px;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:9px 16px;cursor:pointer;white-space:nowrap;font-weight:600;font-size:15px}
+.tab .dot{width:11px;height:11px;border-radius:50%;background:var(--tc);flex:none}
+.tab .num{font-variant-numeric:tabular-nums;color:var(--muted)}
+.tab[aria-selected="true"]{border-color:var(--tc);background:var(--tc);color:var(--on-suit)}
+.tab[aria-selected="true"] .num{color:var(--on-suit-soft)}
+.tab[aria-selected="true"] .dot{background:var(--on-suit)}
+
+.fac-grid{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.fac-grid{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:start}}
+.side{display:flex;flex-direction:column;gap:18px;min-width:0}
+
+.speaker{display:flex;flex-direction:column;gap:18px;box-shadow:var(--shadow)}
+.speaker-head{display:flex;align-items:center;gap:14px}
+.seat-badge{width:36px;height:36px;border-radius:50%;display:inline-grid;place-items:center;background:var(--surface-2);border:1.5px solid var(--line);font-weight:700;font-variant-numeric:tabular-nums;flex:none}
+.seat-badge.big{width:58px;height:58px;font-size:25px;background:var(--suit);border-color:var(--suit);color:var(--on-suit)}
+.sp-text{display:flex;flex-direction:column;min-width:0;line-height:1.35}
+.sp-text strong{font-size:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.word-chip{align-self:flex-start;font-family:var(--font-word);font-size:clamp(30px,5vw,42px);line-height:1.35;color:var(--on-suit);background:var(--suit);padding:8px 20px 4px;border-radius:16px;max-width:100%}
+.sp-q{font-size:17px;font-weight:500;line-height:1.65}
+.timer{display:flex;flex-direction:column;gap:12px;padding-top:4px}
+.timer-digits{font-size:clamp(76px,13vw,136px);font-weight:600;line-height:1;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:-.02em;transition:color .2s ease}
+.timer-status{text-align:center;font-weight:700;min-height:26px;color:var(--danger)}
+.timer.warn .timer-digits{color:var(--warn)}
+.timer.warn .bar span{background:var(--warn)}
+.timer.over .timer-digits{color:var(--danger)}
+.timer-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.timer-controls .btn{padding-inline:10px}
+.round-done{display:flex;flex-direction:column;gap:14px;align-items:flex-start;padding-block:8px}
+.round-done p{font-size:20px;font-weight:700}
+
+.helpers h3,.seats h3{font-size:18px;font-weight:700}
+.helpers{display:flex;flex-direction:column;gap:10px}
+.helper-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.helper-list li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;font-size:16px;line-height:1.6}
+.helper-list li::before{content:"؟";font-family:var(--font-word);font-size:20px;color:var(--suit-ink);line-height:1.4}
+
+.seats{display:flex;flex-direction:column;gap:10px}
+.seats-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.seat-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.seat-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;padding:7px 8px;border-radius:var(--r-sm);border:1.5px solid transparent}
+.seat-row.is-current{border-color:var(--suit);background:var(--surface-2)}
+.seat-row.is-done .seat-mid{opacity:.6}
+.seat-pick{appearance:none;border:0;background:none;padding:0;cursor:pointer;border-radius:50%}
+.seat-row.is-current .seat-badge{background:var(--suit);border-color:var(--suit);color:var(--on-suit)}
+.seat-mid{display:flex;flex-direction:column;gap:2px;min-width:0}
+.seat-row input.seat-name{min-height:34px;padding:4px 8px;border-color:transparent;background:transparent;font-size:15px;font-weight:600}
+.seat-row input.seat-name:hover{border-color:var(--line)}
+.seat-row input.seat-name:focus{border-color:var(--suit-ink);background:var(--surface-2)}
+.seat-word{padding-inline:8px;font-size:14.5px;color:var(--suit-ink);font-weight:600}
+.seat-word.hidden-word{color:var(--muted);letter-spacing:.2em}
+.pill{font-size:12.5px;font-weight:700;border-radius:99px;padding:3px 10px;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.pill.now{background:var(--suit);color:var(--on-suit)}
+.pill.next{border:1.5px solid var(--line);color:var(--muted)}
+.pill.done{color:var(--muted)}
+.pill .icon{width:15px;height:15px}
+
+details.panel{padding:0}
+details.panel > summary{cursor:pointer;padding:16px 20px;font-weight:700;font-size:17px;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px}
+details.panel > summary::-webkit-details-marker{display:none}
+details.panel > summary::after{content:"+";font-size:22px;color:var(--muted);line-height:1}
+details.panel[open] > summary::after{content:"−"}
+.details-body{padding:0 20px 20px;display:flex;flex-direction:column;gap:12px}
+.notes-list{margin:0;padding-inline-start:20px;display:flex;flex-direction:column;gap:8px;line-height:1.65}
+.qr-grid{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:760px){.qr-grid{grid-template-columns:minmax(0,1fr) auto;align-items:start}}
+.qr-form{display:flex;flex-direction:column;gap:10px;min-width:0}
+.check{display:flex;align-items:center;gap:10px;font-size:15px;cursor:pointer}
+.check input{width:20px;height:20px;accent-color:var(--suit)}
+.qr-tile{background:var(--paper);border-radius:var(--r-md);padding:14px;display:grid;place-items:center;border:1px solid var(--line);width:min(100%,300px);justify-self:center}
+.qr-tile canvas{width:100%;max-width:272px;height:auto;aspect-ratio:1;display:block}
+.qr-empty{color:var(--muted-on-paper);font-size:14px;text-align:center;padding:40px 12px;line-height:1.6}
+.qr-url{font-size:13px;direction:ltr;text-align:left}
+
+
+/* ---------- room screen (projector): the whole wall takes the round's suit ---------- */
+.stage-view{position:fixed;inset:0;z-index:5;overflow-y:auto;background:var(--suit);color:var(--on-suit);display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:clamp(8px,2vh,22px);
+  padding-top:calc(clamp(14px,3vh,34px) + env(safe-area-inset-top,0px));
+  padding-bottom:calc(clamp(10px,2vh,20px) + env(safe-area-inset-bottom,0px));
+  padding-left:max(clamp(16px,4vw,56px),env(safe-area-inset-left,0px));
+  padding-right:max(clamp(16px,4vw,56px),env(safe-area-inset-right,0px));
+  transition:background-color .4s ease}
+.stage-view::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:repeating-linear-gradient(135deg,var(--on-suit-faint) 0 1.5px,transparent 1.5px 18px);opacity:.45}
+.st-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.st-round{display:flex;flex-direction:column;gap:2px;min-width:0}
+.st-round-num{font-size:clamp(14px,min(1.7vw,2.6vh),24px);font-weight:600;color:var(--on-suit-soft)}
+.st-round-title{font-size:clamp(24px,min(3.8vw,6vh),58px);font-weight:700;line-height:1.2}
+.st-logo{font-family:var(--font-logo);font-size:clamp(22px,min(2.8vw,4.4vh),42px);line-height:1.2}
+.st-main{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,2.2vh,26px);text-align:center;min-height:0;min-width:0}
+.st-block{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.6vh,18px);width:100%}
+.st-big{font-size:clamp(26px,min(5vw,7.5vh),76px);font-weight:700;line-height:1.3;text-wrap:balance}
+.st-sub{font-size:clamp(16px,min(2vw,3.2vh),30px);color:var(--on-suit-soft);text-wrap:balance}
+.st-seat{font-family:var(--font-word);font-size:clamp(48px,min(11vw,13vh),170px);line-height:1.1}
+.st-seat-pre{font-family:var(--font-ui);font-size:.36em;font-weight:600;color:var(--on-suit-soft);vertical-align:middle;margin-inline-end:.3em}
+.st-digits{font-size:clamp(72px,min(19vw,24vh),280px);font-weight:600;line-height:.95;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.st-bar{width:min(100%,960px);height:12px;background:var(--on-suit-faint);border-color:transparent}
+.st-bar span{background:var(--on-suit)}
+.stage-view.over .st-digits{animation:blink 1s steps(2,start) infinite}
+.st-status:empty{display:none}
+.st-status{font-size:clamp(16px,min(2vw,3vh),30px);font-weight:700}
+.st-status:not(:empty){background:var(--on-suit);color:var(--ink-on-paper);border-radius:99px;padding:4px 20px}
+.st-q{font-size:clamp(16px,min(2.3vw,3.6vh),34px);line-height:1.55;max-width:44ch;text-wrap:balance}
+.st-label{font-size:clamp(20px,min(3vw,4.6vh),46px);font-weight:700;text-wrap:balance}
+.st-bridge{font-size:clamp(14px,min(1.7vw,2.6vh),26px);background:var(--on-suit-faint);border-radius:99px;padding:5px 18px;text-wrap:balance}
+.stage-view.turns .st-digits{font-size:clamp(68px,min(18vw,21vh),260px)}
+.stage-view.turns .st-q{font-size:clamp(14px,min(1.8vw,2.8vh),28px);max-width:60ch;color:var(--on-suit-soft)}
+.st-seats{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(6px,1vw,12px)}
+.st-seats li{width:clamp(38px,min(4.4vw,6.4vh),66px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;border:2px solid var(--on-suit-soft);font-weight:700;font-size:clamp(15px,min(1.9vw,2.8vh),28px);font-variant-numeric:tabular-nums}
+.st-seats li.done{border-color:transparent;background:var(--on-suit-faint);color:var(--on-suit-soft)}
+.st-seats li.now{background:var(--on-suit);border-color:var(--on-suit);color:var(--ink-on-paper);transform:scale(1.12)}
+.st-join-card{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.6vh,16px);width:100%}
+.st-join-card .qr-tile{width:min(100%,58vh,520px);padding:clamp(8px,1.5vh,16px)}
+.st-join-card .qr-tile canvas{max-width:none}
+.st-join-link{width:min(100%,560px)}
+.st-controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;transition:opacity .4s ease}
+.st-controls .btn{min-height:44px;padding:8px 18px;font-size:15px}
+.stage-view.idle .st-controls:not(:focus-within):not(:hover){opacity:.07}
+.st-settings{position:relative}
+.st-settings > summary{list-style:none}
+.st-settings > summary::-webkit-details-marker{display:none}
+.st-settings-body{position:absolute;bottom:calc(100% + 10px);inset-inline-end:0;width:min(340px,86vw);background:var(--surface);color:var(--fg);border-radius:var(--r-md);padding:18px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--card-shadow);text-align:start;z-index:2}
+.st-settings-body .check{color:var(--fg)}
+.st-settings-body a{color:var(--suit-ink);font-weight:600}
+
+@media (prefers-reduced-motion: reduce){
+  .card-inner{transition:none}
+  .card.shuffling,.card.landed,.question-block,.overlay.over .pt-digits,.stage-view.over .st-digits{animation:none}
+  .bar span{transition:none}
+}
+</style>
+
+<div id="app" dir="rtl" lang="ar">
+
+  <!-- ================= JOIN ================= -->
+  <main id="view-join" class="view">
+    <header class="brand">
+      <div class="brand-row">
+        <svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true">
+          <rect class="lm-back" x="10" y="9" width="30" height="41" rx="6" transform="rotate(-13 25 29.5)"/>
+          <g transform="rotate(7 36 33)">
+            <rect class="lm-front" x="21" y="12" width="30" height="41" rx="6"/>
+            <path class="lm-bubble" d="M29 25h14a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3h-6l-5 4v-4h-3a3 3 0 0 1-3-3v-7a3 3 0 0 1 3-3z"/>
+          </g>
+        </svg>
+      </div>
+      <h1 class="logo">كلمة وراها حكاية</h1>
+      <p class="tagline">خمس جولات. بكل جولة بتسحب كلمة، وبتحكي عنها من تجربتك.</p>
+    </header>
+
+    <form id="join-form" class="panel join-form" novalidate>
+      <div class="join-step" id="step-table">
+        <div class="field">
+          <label for="in-table" class="step-q">شو رقم طاولتك؟</label>
+          <div class="stepper big">
+            <button type="button" id="tbl-minus" aria-label="رقم طاولة أقل">−</button>
+            <input id="in-table" type="number" inputmode="numeric" min="1" max="99" placeholder="—" enterkeyhint="next">
+            <button type="button" id="tbl-plus" aria-label="رقم طاولة أكبر">+</button>
+          </div>
+          <p class="help" id="table-note">الرقم مكتوب على كرت الطاولة.</p>
+        </div>
+        <p class="form-error" id="table-error" role="alert" hidden></p>
+        <button class="btn btn-primary btn-big" type="button" id="to-confirm">التالي</button>
+      </div>
+
+      <div class="join-step" id="step-confirm" hidden>
+        <div class="confirm-box">
+          <p class="step-q">إنت على</p>
+          <p class="confirm-table" id="confirm-table">طاولة 1</p>
+          <p class="help">تأكّد إنه هاد الرقم المكتوب على كرت طاولتك.</p>
+        </div>
+        <button class="btn btn-primary btn-big" type="button" id="confirm-yes">أيوه، هاي طاولتي</button>
+        <button class="btn btn-secondary" type="button" id="confirm-no">لا، غيّر الرقم</button>
+      </div>
+
+      <div class="join-step" id="step-seat" hidden>
+        <div class="table-chip"><strong id="chip-table">طاولة 1</strong><button type="button" class="btn-text" id="chip-change">تغيير الطاولة</button></div>
+        <div class="role-switch" role="group" aria-label="مين إنت؟">
+          <button type="button" id="role-player" aria-pressed="true">مشارك</button>
+          <button type="button" id="role-manager" aria-pressed="false">مدير طاولة</button>
+        </div>
+        <p class="help role-note" id="role-note"></p>
+        <div class="field">
+          <label for="in-name">شو اسمك؟</label>
+          <input id="in-name" type="text" autocomplete="given-name" maxlength="30" placeholder="الاسم الأول بكفي" enterkeyhint="done">
+        </div>
+        <fieldset class="field" id="seat-field">
+          <legend id="seat-legend">اختار رقمك (هو دورك بالحكي)</legend>
+          <div class="seat-grid" id="seat-grid">
+            <input type="radio" name="seat" id="seat-1" value="1" disabled><label for="seat-1">1<small>المدير</small></label>
+            <input type="radio" name="seat" id="seat-2" value="2"><label for="seat-2">2</label>
+            <input type="radio" name="seat" id="seat-3" value="3"><label for="seat-3">3</label>
+            <input type="radio" name="seat" id="seat-4" value="4"><label for="seat-4">4</label>
+            <input type="radio" name="seat" id="seat-5" value="5"><label for="seat-5">5</label>
+            <input type="radio" name="seat" id="seat-6" value="6"><label for="seat-6">6</label>
+            <input type="radio" name="seat" id="seat-7" value="7"><label for="seat-7">7</label>
+            <input type="radio" name="seat" id="seat-8" value="8"><label for="seat-8">8</label>
+            <input type="radio" name="seat" id="seat-9" value="9"><label for="seat-9">9</label>
+            <input type="radio" name="seat" id="seat-10" value="10"><label for="seat-10">10</label>
+          </div>
+          <p class="help">رقم 1 للمدير. اختار رقم مش مأخوذ. كل رقم على الطاولة بتطلعله كلمة مختلفة.</p>
+          <p class="seat-live" id="seat-live" aria-live="polite"></p>
+        </fieldset>
+        <p class="help" id="auto-note" hidden>رقمك ودورك بالحكي بيطلعولك لحالهم.</p>
+        <div class="field" id="count-field" hidden>
+          <span class="field-label" id="lbl-jcount">كم واحد على الطاولة؟ (مع المدير)</span>
+          <div class="stepper" role="group" aria-labelledby="lbl-jcount">
+            <button type="button" id="cnt-minus" aria-label="أقل">−</button>
+            <output id="in-count">8</output>
+            <button type="button" id="cnt-plus" aria-label="أكثر">+</button>
+          </div>
+          <p class="help">إنت رقم 1. الباقي بتطلعلهم أرقامهم لحالهم لما يدخلوا.</p>
+        </div>
+        <p class="form-error" id="join-error" role="alert" hidden></p>
+        <button class="btn btn-primary btn-big" type="submit" id="join-submit">يلّا نبلّش</button>
+      </div>
+    </form>
+
+    <ol class="steps">
+      <li>امسح الرمز اللي على طاولتك.</li>
+      <li>اكتب اسمك، ورقمك بيطلع لحاله.</li>
+      <li>بكل جولة اكبس «اخلط»، ومدير الطاولة بيدير الأدوار والوقت.</li>
+    </ol>
+    <footer class="foot"><a class="quiet-link" href="#stage">شاشة القاعة (للبروجكتر)</a></footer>
+  </main>
+
+  <!-- ================= PLAY ================= -->
+  <main id="view-play" class="view" hidden>
+    <header class="topbar">
+      <div class="who">
+        <span class="avatar" id="p-avatar" aria-hidden="true">؟</span>
+        <div class="who-text"><strong id="p-name"></strong><span id="p-meta"></span></div>
+      </div>
+      <div class="top-actions">
+        <button class="btn-text" id="btn-card" type="button">بطاقتي</button>
+        <button class="btn-text" id="btn-edit" type="button">تغيير</button>
+      </div>
+    </header>
+
+    <section class="panel join-banner" id="join-banner" hidden>
+      <p class="eyebrow">أهلا وسهلا</p>
+      <p class="jb-line">رقمك <strong id="jb-seat"></strong></p>
+      <p class="help">على <span id="jb-table"></span>. هو كمان دورك بالحكي، ومدير الطاولة بيناديك باسمك.</p>
+      <button class="btn-text" id="jb-ok" type="button">تمام</button>
+    </section>
+
+    <nav class="pips" id="pips" aria-label="الجولات"></nav>
+
+    <section class="round-head">
+      <p class="eyebrow" id="r-count"></p>
+      <h2 class="round-title" id="r-title"></h2>
+      <p class="round-desc" id="r-desc"></p>
+    </section>
+
+    <div class="stage">
+      <div class="card" id="card">
+        <div class="card-inner" id="card-inner">
+          <div class="card-side card-back" aria-hidden="true">
+            <svg class="back-bubble" viewBox="0 0 120 104">
+              <path d="M18 6h84a14 14 0 0 1 14 14v46a14 14 0 0 1-14 14H58L36 98V80H18A14 14 0 0 1 4 66V20A14 14 0 0 1 18 6z"/>
+              <text x="60" y="62" text-anchor="middle">؟</text>
+            </svg>
+            <span class="back-label">كلمة وراها حكاية</span>
+            <span class="back-round" id="c-back-round"></span>
+          </div>
+          <div class="card-side card-face" id="card-face" aria-live="polite">
+            <div class="face-top"><span class="tag" id="c-round"></span><span class="tag" id="c-seat"></span></div>
+            <span class="card-word" id="c-word"></span>
+            <span class="face-bottom" id="c-group"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="draw" id="draw-block">
+      <button class="btn btn-primary btn-big" id="btn-shuffle" type="button">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+        <span id="shuffle-label">اخلط واسحب كلمتك</span>
+      </button>
+      <p class="help center">اكبس لما شاشة القاعة تقول «اخلط».</p>
+    </div>
+
+    <section class="question-block panel" id="q-block" hidden>
+      <p class="eyebrow">السؤال</p>
+      <p class="question" id="q-text"></p>
+      <p class="help">حضّر جوابك من تجربتك. ما في جواب صح أو غلط. إذا الكلمة ما بتعبّر عنك، احكِ ليش. ومش لازم تحكي تفاصيل حسّاسة عن مكان شغلك.</p>
+      <div class="row">
+        <button class="btn btn-secondary" id="btn-timer" type="button">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2"/><path d="M9.5 2.5h5"/></svg>
+          مؤقّت الدور
+        </button>
+        <button class="btn btn-primary" id="btn-next" type="button">
+          <span id="next-label">الجولة التالية</span>
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+      </div>
+      <p class="help">انتقلوا للجولة اللي بعدها لما الكل يحكي والميسّر يقول.</p>
+    </section>
+  </main>
+
+  <!-- ================= END ================= -->
+  <main id="view-end" class="view" hidden>
+    <header class="end-head">
+      <p class="eyebrow" id="end-who"></p>
+      <h2 class="end-title">خلصنا الجولات</h2>
+      <p class="help">شكراً على الحكايات. هاي الكلمات اللي طلعتلك اليوم:</p>
+    </header>
+    <ol class="word-list" id="end-list"></ol>
+    <div class="row">
+      <button class="btn btn-primary" id="btn-end-card" type="button">بطاقتي: خلّي الطاولة تحفظ رقمك</button>
+      <button class="btn btn-secondary" id="btn-back-rounds" type="button">رجوع للجولات</button>
+    </div>
+  </main>
+
+  <!-- ================= MY CARD (contact QR) ================= -->
+  <main id="view-card" class="view" hidden>
+    <header class="end-head">
+      <p class="eyebrow">بطاقتي</p>
+      <h2 class="round-title">خلّي الطاولة تحفظ رقمك</h2>
+      <p class="help">عبّي اللي بدك تشاركه وبيطلع رمز. اللي حواليك بيمسحوه بكاميرا التلفون وبينحفظ عندهم كجهة اتصال. المعلومات بتضل على تلفونك بس.</p>
+    </header>
+    <form id="card-form" class="panel join-form" novalidate>
+      <div class="field"><label for="cd-name">الاسم</label><input id="cd-name" type="text" maxlength="40" autocomplete="name"></div>
+      <div class="field"><label for="cd-job">شو بتشتغل؟</label><input id="cd-job" type="text" maxlength="60" placeholder="مثلًا: محامية، مطوّر، صاحب مصلحة"></div>
+      <div class="field"><label for="cd-tel">رقم التلفون</label><input id="cd-tel" type="tel" dir="ltr" inputmode="tel" maxlength="20" autocomplete="tel"></div>
+      <div class="field"><label for="cd-link">إيميل أو LinkedIn (اختياري)</label><input id="cd-link" type="text" dir="ltr" maxlength="120" autocomplete="email"></div>
+      <p class="form-error" id="card-error" role="alert" hidden></p>
+      <button class="btn btn-primary btn-big" type="submit">اعمل الرمز</button>
+    </form>
+    <section class="panel card-qr" id="card-qr" hidden>
+      <div class="qr-tile">
+        <canvas id="cd-canvas" width="600" height="600" hidden></canvas>
+        <p class="qr-empty" id="cd-empty">عم نعمل الرمز…</p>
+      </div>
+      <p class="help center">امسحوا الرمز بكاميرا التلفون، وبيطلع «إضافة جهة اتصال».</p>
+      <button class="btn btn-secondary" id="cd-edit" type="button">تعديل المعلومات</button>
+    </section>
+    <div class="row"><button class="btn btn-secondary" id="card-back" type="button">رجوع للجولات</button></div>
+  </main>
+
+  <!-- ================= TABLE MANAGER ================= -->
+  <main id="view-fac" class="view" hidden>
+    <header class="mg-head">
+      <div>
+        <p class="eyebrow">مدير الطاولة · <span id="mg-who"></span></p>
+        <h1 class="mg-table" id="mg-table">طاولة 1</h1>
+      </div>
+      <div class="top-actions">
+        <button class="btn-text" id="mg-card" type="button">بطاقتي</button>
+        <button class="btn-text" id="mg-edit" type="button">تغيير</button>
+      </div>
+    </header>
+
+    <nav class="round-tabs" id="mg-tabs" aria-label="فقرات الفعالية"></nav>
+
+    <section class="panel speaker" aria-labelledby="mg-title">
+      <div>
+        <p class="eyebrow" id="mg-eyebrow"></p>
+        <h2 class="round-title" id="mg-title"></h2>
+      </div>
+      <p class="mg-live" id="mg-live" aria-live="polite"></p>
+      <p class="say" id="mg-say"></p>
+      <div id="mg-turn" hidden>
+        <div class="speaker-head">
+          <span class="seat-badge big" id="mg-seat">1</span>
+          <div class="sp-text"><span class="eyebrow">هلّق دور</span><strong id="mg-name"></strong></div>
+        </div>
+        <input id="mg-name-in" class="mg-name-in" type="text" maxlength="30" placeholder="اكتب اسمه وهو بيعرّف عن حاله" aria-label="اسم صاحب الدور" hidden>
+      </div>
+      <span class="word-chip" id="mg-word" hidden></span>
+      <div class="timer" id="mg-timer" hidden>
+        <div class="timer-digits digits" id="mg-digits">1:30</div>
+        <div class="bar"><span id="mg-bar"></span></div>
+        <div class="timer-status" id="mg-status" aria-live="polite"></div>
+      </div>
+      <div class="mg-controls">
+        <button class="btn btn-primary" id="mg-main" type="button">ابدأ</button>
+        <button class="btn btn-secondary" id="mg-skip" type="button">التالي</button>
+        <button class="btn btn-secondary" id="mg-reset" type="button">من جديد</button>
+      </div>
+    </section>
+
+    <section class="panel helpers" id="mg-helpers" hidden>
+      <h3>أسئلة مساعدة</h3>
+      <p class="help">إلك بس. استعملها إذا حدا علق، أو بالنقاش المفتوح.</p>
+      <ul class="helper-list" id="mg-helper-list"></ul>
+    </section>
+
+    <section class="panel seats">
+      <div class="seats-head">
+        <h3>الطاولة</h3>
+        <button class="btn-text" id="mg-reveal" type="button">اكشف كل الكلمات</button>
+      </div>
+      <p class="help" id="mg-seat-note"></p>
+      <ol class="seat-list" id="mg-seats"></ol>
+    </section>
+
+    <details class="panel" id="mg-qr-panel">
+      <summary>رمز QR لطاولتي</summary>
+      <div class="details-body">
+        <p class="help">اللي بيمسح هالرمز من تلفونك، رقم الطاولة بتعبّى عنده لحاله.</p>
+        <div class="qr-tile">
+          <canvas id="mg-qr" width="520" height="520" hidden></canvas>
+          <p class="qr-empty" id="mg-qr-empty"></p>
+        </div>
+        <input id="mg-qr-out" type="text" dir="ltr" class="qr-url" readonly aria-label="رابط الطاولة">
+      </div>
+    </details>
+
+    <details class="panel">
+      <summary>إعدادات الطاولة</summary>
+      <div class="details-body">
+        <div class="setting">
+          <span class="setting-label" id="lbl-mcount">كم واحد على الطاولة</span>
+          <div class="stepper" role="group" aria-labelledby="lbl-mcount">
+            <button type="button" data-mset="-1" aria-label="أقل">−</button>
+            <output id="mg-count">8</output>
+            <button type="button" data-mset="1" aria-label="أكثر">+</button>
+          </div>
+        </div>
+        <div class="setting">
+          <span class="setting-label" id="lbl-mdur">وقت كل مشارك بالجولات</span>
+          <div class="seg" id="mg-dur" role="radiogroup" aria-labelledby="lbl-mdur">
+            <button type="button" role="radio" data-sec="60">1:00</button>
+            <button type="button" role="radio" data-sec="90">1:30</button>
+            <button type="button" role="radio" data-sec="120">2:00</button>
+            <button type="button" role="radio" data-sec="150">2:30</button>
+            <button type="button" role="radio" data-sec="180">3:00</button>
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="mg-auto"> تشغيل تلقائي: بينتقل للي بعده 5 ثواني بعد ما يخلص الوقت</label>
+        <p class="help" id="mg-estimate"></p>
+      </div>
+    </details>
+
+    <details class="panel">
+      <summary>ملاحظات للمدير</summary>
+      <div class="details-body">
+        <ul class="notes-list">
+          <li>السؤال الرئيسي بكفي. الأسئلة المساعدة بس إذا حدا علق أو بدك توسّع النقاش.</li>
+          <li>إذا حدا طلعله كلمة ما بتعبّر عنه، عادي يحكي ليش ما بتناسبه.</li>
+          <li>بالنقاش المفتوح: إذا حدا حكى تجربة مثيرة، اسأل إذا حدا ثاني مرّ بتجربة مشابهة.</li>
+          <li>مش مطلوب من حدا يحكي تفاصيل شخصية أو حسّاسة عن مكان شغله.</li>
+          <li>إذا اثنين طلعلهم نفس الكلمة، واحد منهم اختار رقم أو طاولة غلط. خلّيه يكبس «تغيير» ويصلّح.</li>
+          <li>إذا تلفونك وقع، أي حدا بيقدر يفتح «مدير طاولة» بنفس رقم الطاولة وبيطلعله نفس الكلمات.</li>
+        </ul>
+      </div>
+    </details>
+  </main>
+
+  <!-- ================= ROOM SCREEN (projector) ================= -->
+  <main id="view-stage" class="stage-view" hidden>
+    <header class="st-head">
+      <div class="st-round">
+        <span class="st-round-num" id="st-eyebrow"></span>
+        <span class="st-round-title" id="st-title"></span>
+      </div>
+      <span class="st-logo">كلمة وراها حكاية</span>
+    </header>
+
+    <section class="st-main">
+      <div class="st-block" id="st-ready">
+        <p class="st-big" id="st-ready-big"></p>
+        <p class="st-sub" id="st-ready-sub"></p>
+      </div>
+      <div class="st-block" id="st-live" hidden>
+        <p class="st-label" id="st-live-label"></p>
+        <p class="st-seat" id="st-seat-line"><span class="st-seat-pre">هلّق دور</span>رقم <span id="st-seat">1</span></p>
+        <div class="st-digits digits" id="st-digits">1:30</div>
+        <div class="bar st-bar"><span id="st-bar"></span></div>
+        <p class="st-status" id="st-status" aria-live="polite"></p>
+      </div>
+      <div class="st-block" id="st-done" hidden>
+        <p class="st-big" id="st-done-big"></p>
+        <p class="st-sub" id="st-done-sub"></p>
+      </div>
+      <div class="st-block" id="st-join" hidden>
+        <div class="st-join-card">
+          <p class="st-big">امسحوا الرمز وادخلوا</p>
+          <div class="qr-tile">
+            <canvas id="st-qr" width="720" height="720" hidden></canvas>
+            <p class="qr-empty" id="st-qr-empty">الصق رابط الصفحة تحت وبيطلع الرمز هون.</p>
+          </div>
+          <p class="st-sub">أحسن تمسحوا الرمز اللي على طاولتكم. بعدها بس اسمكم، ورقمكم بيطلع لحاله.</p>
+          <p class="st-joined" id="st-joined"></p>
+          <div class="st-join-link"><input id="st-link" type="url" dir="ltr" inputmode="url" placeholder="https://…" autocomplete="off" aria-label="رابط الصفحة للرمز"></div>
+        </div>
+      </div>
+      <ol class="st-seats" id="st-seats" aria-label="ترتيب الأدوار"></ol>
+      <p class="st-q" id="st-q"></p>
+      <p class="st-bridge" id="st-bridge" hidden>قبل ما تجاوب: جملة وحدة عن إشي لفتك بحكاية اللي قبلك.</p>
+    </section>
+
+    <footer class="st-controls" id="st-controls">
+      <button class="btn btn-on" id="st-prev" type="button">الفقرة السابقة</button>
+      <button class="btn btn-on-strong" id="st-main" type="button">ابدأ</button>
+      <button class="btn btn-on" id="st-skip" type="button">التالي</button>
+      <button class="btn btn-on" id="st-reset" type="button">من جديد</button>
+      <button class="btn btn-on" id="st-nextseg" type="button">الفقرة التالية</button>
+      <button class="btn btn-on" id="st-qr-btn" type="button">رمز الدخول</button>
+      <button class="btn btn-on" id="st-full" type="button">ملء الشاشة</button>
+      <details class="st-settings">
+        <summary class="btn btn-on">إعدادات</summary>
+        <div class="st-settings-body">
+          <div class="setting">
+            <span class="setting-label" id="lbl-scount">أكبر رقم على الطاولات</span>
+            <div class="stepper" role="group" aria-labelledby="lbl-scount">
+              <button type="button" data-sset="count" data-step="-1" aria-label="أقل">−</button>
+              <output id="st-count">8</output>
+              <button type="button" data-sset="count" data-step="1" aria-label="أكثر">+</button>
+            </div>
+          </div>
+          <div class="setting">
+            <span class="setting-label" id="lbl-sdur">وقت كل مشارك بالجولات</span>
+            <div class="seg" id="st-dur" role="radiogroup" aria-labelledby="lbl-sdur">
+              <button type="button" role="radio" data-sec="60">1:00</button>
+              <button type="button" role="radio" data-sec="90">1:30</button>
+              <button type="button" role="radio" data-sec="120">2:00</button>
+              <button type="button" role="radio" data-sec="150">2:30</button>
+              <button type="button" role="radio" data-sec="180">3:00</button>
+            </div>
+          </div>
+          <label class="check"><input type="checkbox" id="st-managed"> في مدير لكل طاولة: الشاشة بتعدّ وقت الفقرة كلها، والمدراء بيديروا الأدوار</label>
+          <label class="check"><input type="checkbox" id="st-auto"> تشغيل تلقائي: الشاشة بتنتقل لحالها (5 ثواني بعد ما يخلص الوقت)</label>
+          <p class="help" id="st-estimate"></p>
+          <p class="help">مفاتيح: مسافة = ابدأ/وقّف، ← = التالي، R = من جديد، F = ملء الشاشة.</p>
+        </div>
+      </details>
+    </footer>
+  </main>
+
+  <!-- ================= PARTICIPANT TIMER ================= -->
+  <div class="overlay" id="p-timer" role="dialog" aria-modal="true" aria-labelledby="pt-title" hidden>
+    <div class="overlay-inner">
+      <div class="overlay-top">
+        <p id="pt-title">مؤقّت الدور</p>
+        <button class="icon-btn" id="pt-close" type="button" aria-label="سكّر المؤقّت">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <p class="pt-word" id="pt-word"></p>
+      <div class="pt-digits digits" id="pt-digits">2:00</div>
+      <div class="bar"><span id="pt-bar"></span></div>
+      <p class="pt-status" id="pt-status" aria-live="polite"></p>
+      <div class="pt-adjust">
+        <button class="btn btn-on" id="pt-minus" type="button">− 30 ثانية</button>
+        <button class="btn btn-on" id="pt-plus" type="button">+ 30 ثانية</button>
+      </div>
+      <div class="row">
+        <button class="btn btn-on-strong btn-big" id="pt-start" type="button">ابدأ</button>
+        <button class="btn btn-on btn-big" id="pt-reset" type="button">من جديد</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  document.documentElement.lang = "ar";
+  document.documentElement.dir = "rtl";
+
+  // ------------------------------------------------------------------
+  // Content: five groups, ten words each, one shared question, helpers
+  // for the facilitator only.
+  // ------------------------------------------------------------------
+  var GROUPS = [
+    {
+      title: "مهاراتنا بالشغل",
+      desc: "المهارات والصفات اللي بتساعدنا ننجح ونتطوّر بحياتنا المهنية.",
+      words: ["القيادة", "العمل الجماعي", "التواصل", "الإبداع", "حلّ المشاكل", "إدارة الوقت", "المرونة", "اتخاذ القرارات", "تحمّل المسؤولية", "المبادرة"],
+      question: "قديش بتحسّوا إنّ هاي المهارة موجودة عندكم بالشغل؟ واحكولنا عن موقف بيبيّن هالإشي.",
+      helpers: ["بتحسّوا إنّها مهارة طبيعية عندكم، ولا اكتسبتوها مع الوقت؟", "شو ممكن يساعدكم تطوّروها أكثر؟", "قديش بتشوفوا إنّها مهمة للنجاح بالشغل؟"]
+    },
+    {
+      title: "كيف منفصل عن ضغط الشغل؟",
+      desc: "الأشياء اللي منعملها عشان نرتاح، نخفّف التوتر، ونوازن بين الشغل وحياتنا الشخصية.",
+      words: ["الرياضة", "القراءة", "السفر", "المشي", "الموسيقى", "التأمّل", "الطبخ", "الطلعات مع الأصحاب", "الوقت مع العيلة", "الوقت لحالنا"],
+      question: "قديش هالنشاط جزء من حياتكم؟ وهل فعلًا بساعدكم تفصلوا عن ضغط الشغل؟",
+      helpers: ["إمتى آخر مرة عملتوا هالإشي؟", "إذا مش جزء من روتينكم، بتحبّوا تجرّبوه؟ ليش؟", "شو أكثر إشي بساعدكم تنسوا ضغط الشغل؟"]
+    },
+    {
+      title: "شو مندوّر عليه بمكان الشغل؟",
+      desc: "الأشياء اللي بتخلّينا نرتاح بمكان عملنا ونحسّ إنه مناسب إلنا.",
+      words: ["الراتب", "التقدير", "الاستقرار", "المرونة", "التطوّر المهني", "العلاقات مع الزملاء", "الاستقلالية", "بيئة مريحة", "فرص الترقية", "الشعور بالإنجاز"],
+      question: "قديش هالإشي مهم إلكم بمكان الشغل؟ وهل ممكن تتنازلوا عنه مقابل إشي ثاني؟",
+      helpers: ["هل هالإشي موجود بمكان شغلكم الحالي؟", "هل أهميته تغيّرت عندكم مع الوقت؟", "ممكن تتركوا شغل بسبب غيابه؟"]
+    },
+    {
+      title: "تحدّيات منواجهها بالشغل",
+      desc: "مواقف وصعوبات ممكن نمرّ فيها بحياتنا المهنية، وكيف منتعامل معها.",
+      words: ["ضغط الوقت", "النقد", "عدم التطور والتقدم", "المنافسة", "الخلافات", "التغيير", "الرفض", "كثرة المسؤوليات", "قلة التقدير", "الخوف من الغلط"],
+      question: "هل واجهتوا هالتحدّي بحياتكم المهنية؟ وكيف تعاملتوا معه؟",
+      helpers: ["شو كان أصعب إشي بالنسبة إلكم بهالموقف؟", "هل بتتعاملوا معه اليوم بطريقة مختلفة عن قبل؟", "شو تعلّمتوا من هالتجربة؟"]
+    },
+    {
+      title: "العلاقات والتواصل بعالم الشغل",
+      desc: "كيف منبني علاقات مهنية، ومنتعرّف على ناس جدد، ومنفتح فرص لبعض.",
+      words: ["التعارف", "الثقة", "الدعم", "التعاون", "المساعدة", "المعارف", "المصلحة", "الانطباع الأول", "الحدود", "تبادل الخبرات"],
+      question: "شو دور هالإشي بعلاقاتكم المهنية؟ واحكولنا عن تجربة أو موقف مرتبط فيه.",
+      helpers: ["قديش هالإشي مهم بالنسبة إلكم بالعلاقات المهنية؟", "هل مرّيتوا بتجربة غيّرت نظرتكم إله؟", "هل بتشوفوا إنه العلاقات المهنية لازم تكون مختلفة عن الصداقات؟"]
+    }
+  ];
+  var LAST = GROUPS.length - 1;
+  // The public link people scan; used for the QR when the page runs inside the artifact viewer.
+  var PUBLIC_LINK = "https://mahdeeka.github.io/Mahdeeka/kalima-hikaya/";
+  var MAX_SEATS = 10;
+
+  // ------------------------------------------------------------------
+  // Helpers
+  // ------------------------------------------------------------------
+  function $(sel, root) { return (root || document).querySelector(sel); }
+  function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
+  function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  var reduceMotion = false;
+  try { reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+
+  var store = {
+    get: function (k, fallback) {
+      try { var v = window.localStorage.getItem(k); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; }
+    },
+    set: function (k, v) {
+      try { window.localStorage.setItem(k, JSON.stringify(v)); } catch (e) {}
+    }
+  };
+
+  function vibrate(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
+  var audioCtx = null;
+  function unlockAudio() {
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!audioCtx) audioCtx = new AC();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+    } catch (e) {}
+  }
+  function chime() {
+    if (!audioCtx) return;
+    try {
+      var t0 = audioCtx.currentTime;
+      [0, 0.3, 0.6].forEach(function (d, i) {
+        var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = "sine";
+        o.frequency.value = i === 2 ? 659 : 880;
+        g.gain.setValueAtTime(0.0001, t0 + d);
+        g.gain.exponentialRampToValueAtTime(0.32, t0 + d + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.26);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(t0 + d); o.stop(t0 + d + 0.3);
+      });
+    } catch (e) {}
+  }
+
+  var wakeLock = null;
+  function keepAwake() {
+    try {
+      if (wakeLock || !("wakeLock" in navigator)) return;
+      navigator.wakeLock.request("screen").then(function (l) {
+        wakeLock = l;
+        l.addEventListener("release", function () { wakeLock = null; });
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function setSuit(round) {
+    var n = clamp(round, 0, LAST) + 1;
+    var app = $("#app");
+    app.style.setProperty("--suit", "var(--s" + n + ")");
+    app.style.setProperty("--suit-ink", "var(--s" + n + "-ink)");
+  }
+
+  function fmtClock(ms) {
+    var over = ms < 0;
+    var s = over ? Math.floor(-ms / 1000) : Math.ceil(ms / 1000);
+    var m = Math.floor(s / 60), ss = s % 60;
+    return (over ? "+" : "") + m + ":" + (ss < 10 ? "0" : "") + ss;
+  }
+  function fmtDur(sec) { return Math.floor(sec / 60) + ":" + (sec % 60 < 10 ? "0" : "") + (sec % 60); }
+
+  // ------------------------------------------------------------------
+  // The deal. Same table + same round + same day always gives the same
+  // shuffle, so every phone computes the same result with no server:
+  // seat N gets position N of the shuffled list, which guarantees that
+  // everyone at one table holds a different word.
+  // The day rolls over at 05:00 so a late evening stays one "day".
+  // ------------------------------------------------------------------
+  function dayKey() {
+    var d = new Date(Date.now() - 5 * 3600 * 1000);
+    return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+  }
+  function hashStr(s) {
+    var h = 2166136261 >>> 0;
+    for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+    return h;
+  }
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function dealOrder(table, round) {
+    var r = rng(hashStr("kwh|" + dayKey() + "|t" + table + "|r" + round));
+    var idx = GROUPS[round].words.map(function (_, i) { return i; });
+    for (var i = idx.length - 1; i > 0; i--) {
+      var j = Math.floor(r() * (i + 1));
+      var tmp = idx[i]; idx[i] = idx[j]; idx[j] = tmp;
+    }
+    return idx;
+  }
+  function wordFor(table, round, seat) {
+    return GROUPS[round].words[dealOrder(table, round)[seat - 1]];
+  }
+
+  // ------------------------------------------------------------------
+  // Timer (used by the facilitator screen and the participant overlay)
+  // ------------------------------------------------------------------
+  function makeTimer(onTick, onEnd) {
+    var duration = 120, acc = 0, started = 0, iv = null, ended = false;
+    function now() { return (window.performance && performance.now) ? performance.now() : Date.now(); }
+    function elapsed() { return acc + (started ? now() - started : 0); }
+    function tick() {
+      var rem = duration * 1000 - elapsed();
+      if (started && !ended && rem <= 0) { ended = true; if (onEnd) onEnd(); }
+      onTick(rem, api);
+    }
+    var api = {
+      get running() { return !!started; },
+      get duration() { return duration; },
+      elapsed: elapsed,
+      start: function () { if (started) return; started = now(); iv = setInterval(tick, 200); tick(); },
+      pause: function () { if (!started) return; acc = elapsed(); started = 0; clearInterval(iv); iv = null; tick(); },
+      reset: function () { clearInterval(iv); iv = null; started = 0; acc = 0; ended = false; tick(); },
+      setDuration: function (sec) {
+        duration = sec;
+        if (duration * 1000 - elapsed() > 0) ended = false;
+        tick();
+      },
+      refresh: tick
+    };
+    return api;
+  }
+
+  // ------------------------------------------------------------------
+  // Views
+  // ------------------------------------------------------------------
+  var views = { join: $("#view-join"), play: $("#view-play"), end: $("#view-end"), card: $("#view-card"), fac: $("#view-fac"), stage: $("#view-stage") };
+  function showView(name) {
+    Object.keys(views).forEach(function (k) { views[k].hidden = k !== name; });
+    try { window.scrollTo(0, 0); } catch (e) {}
+    if (name !== "join" && joinWatch) { joinWatch(); joinWatch = null; }
+    if (name !== "fac" && mgWatch) { mgWatch(); mgWatch = null; }
+    if (name !== "stage" && stWatch) { stWatch(); stWatch = null; }
+  }
+
+  // ------------------------------------------------------------------
+  // Live table state (optional). With a Firebase config, the phones at a
+  // table share which numbers are taken, and the manager sees who joined
+  // and who drew their word. Without it (or offline) everything still
+  // works the way it always did; nothing here blocks a person from playing.
+  // One Firestore document per table per day: kwh_tables/<day>_t<table>
+  // { day, table, seats: { s1: {id, name, role, at, rev: [rounds]}, ... } }
+  // ------------------------------------------------------------------
+  // Firebase web config (public by design; access is limited by firebase/firestore.rules).
+  var FIREBASE_CONFIG = {
+    apiKey: "AIzaSyAVHzMq6X9e1tjUeHbVicGGDdjvVV4Rqv8",
+    authDomain: "networking-792e1.firebaseapp.com",
+    projectId: "networking-792e1",
+    storageBucket: "networking-792e1.firebasestorage.app",
+    messagingSenderId: "107758876313",
+    appId: "1:107758876313:web:22720558027cc831162a08"
+  };
+  var FB_SDK = "https://www.gstatic.com/firebasejs/10.12.2/";
+  var LIVE_COLL = "kwh_tables";
+  var deviceId = (function () {
+    var id = store.get("kwh.device.v1", "");
+    if (!id) { id = "d" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); store.set("kwh.device.v1", id); }
+    return id;
+  })();
+  var backendP = null;
+  function loadScript(src) {
+    return new Promise(function (res, rej) {
+      var s = document.createElement("script");
+      var t = setTimeout(function () { rej(new Error("timeout")); }, 12000);
+      s.src = src;
+      s.onload = function () { clearTimeout(t); res(); };
+      s.onerror = function () { clearTimeout(t); rej(new Error("load")); };
+      document.head.appendChild(s);
+    });
+  }
+  function liveOn() { return !!(window.__kwhTestBackend || FIREBASE_CONFIG); }
+  function getBackend() {
+    if (backendP) return backendP;
+    if (window.__kwhTestBackend) backendP = Promise.resolve(window.__kwhTestBackend);
+    else if (FIREBASE_CONFIG) {
+      backendP = loadScript(FB_SDK + "firebase-app-compat.js")
+        .then(function () { return loadScript(FB_SDK + "firebase-firestore-compat.js"); })
+        .then(function () {
+          var app = window.firebase.initializeApp(FIREBASE_CONFIG, "kwh");
+          var db = app.firestore();
+          return {
+            watch: function (id, cb, onErr) {
+              return db.collection(LIVE_COLL).doc(id).onSnapshot(function (snap) { cb(snap.exists ? snap.data() : null); }, onErr);
+            },
+            watchDay: function (day, cb, onErr) {
+              return db.collection(LIVE_COLL).where("day", "==", day).onSnapshot(function (q) {
+                cb(q.docs.map(function (d) { return d.data(); }));
+              }, onErr);
+            },
+            tx: function (id, base, mutate) {
+              var ref = db.collection(LIVE_COLL).doc(id);
+              return db.runTransaction(function (t) {
+                return t.get(ref).then(function (snap) {
+                  var seats = (snap.exists && snap.data().seats) || {};
+                  var next = mutate(JSON.parse(JSON.stringify(seats)));
+                  t.set(ref, { day: base.day, table: base.table, seats: next, updatedAt: Date.now() });
+                });
+              });
+            }
+          };
+        });
+    } else backendP = Promise.reject(new Error("off"));
+    backendP.catch(function () {});
+    return backendP;
+  }
+  function withTimeout(pr, ms) {
+    return new Promise(function (res, rej) {
+      var t = setTimeout(function () { var e = new Error("timeout"); e.code = "timeout"; rej(e); }, ms);
+      pr.then(function (v) { clearTimeout(t); res(v); }, function (e) { clearTimeout(t); rej(e); });
+    });
+  }
+  function tableDocId(t) { return dayKey() + "_t" + t; }
+  // cb(seats) on every change; cb(null) when live tables are off or unreachable.
+  function watchTable(t, cb) {
+    var unsub = null, dead = false;
+    if (!liveOn()) { cb(null); return function () {}; }
+    getBackend().then(function (b) {
+      if (dead) return;
+      unsub = b.watch(tableDocId(t), function (d) { cb((d && d.seats) || {}); }, function () { cb(null); });
+    }).catch(function () { cb(null); });
+    return function () { dead = true; if (unsub) unsub(); };
+  }
+  function watchDay(cb) {
+    var unsub = null, dead = false;
+    if (!liveOn()) { cb(null); return function () {}; }
+    getBackend().then(function (b) {
+      if (dead) return;
+      unsub = b.watchDay(dayKey(), cb, function () { cb(null); });
+    }).catch(function () { cb(null); });
+    return function () { dead = true; if (unsub) unsub(); };
+  }
+  function txTable(t, mutate) {
+    if (!liveOn()) return Promise.reject(new Error("off"));
+    return withTimeout(getBackend().then(function (b) { return b.tx(tableDocId(t), { day: dayKey(), table: t }, mutate); }), 8000);
+  }
+  // Take seat `key` for this phone; a seat someone else holds throws {code: "taken"}.
+  function claimSeat(t, seat, name, seatRole, force) {
+    var key = "s" + seat;
+    return txTable(t, function (seats) {
+      var cur = seats[key];
+      if (cur && cur.id !== deviceId && !force) { var e = new Error("taken"); e.code = "taken"; e.holder = cur.name || ""; throw e; }
+      var keepRev = (cur && cur.id === deviceId && cur.rev) || [];
+      Object.keys(seats).forEach(function (k) { if (seats[k] && seats[k].id === deviceId) delete seats[k]; });
+      seats[key] = { id: deviceId, name: name, role: seatRole, at: Date.now(), rev: keepRev };
+      return seats;
+    });
+  }
+  // Give this phone the lowest free number from 2 up (1 is the manager);
+  // a phone that already holds a number at this table keeps it.
+  function claimNextSeat(t, name) {
+    var assigned = 0;
+    return txTable(t, function (seats) {
+      assigned = 0;
+      Object.keys(seats).forEach(function (k) {
+        var e = seats[k];
+        if (e && e.id === deviceId && e.role !== "m" && !assigned) assigned = Number(k.slice(1));
+      });
+      for (var n = 2; !assigned && n <= MAX_SEATS; n++) if (!seats["s" + n]) assigned = n;
+      if (!assigned) { var err = new Error("full"); err.code = "full"; throw err; }
+      var cur = seats["s" + assigned];
+      var keepRev = (cur && cur.id === deviceId && cur.rev) || [];
+      Object.keys(seats).forEach(function (k) { if (seats[k] && seats[k].id === deviceId) delete seats[k]; });
+      seats["s" + assigned] = { id: deviceId, name: name, role: "p", at: Date.now(), rev: keepRev };
+      return seats;
+    }).then(function () { return assigned; });
+  }
+  function releaseSeats(t) {
+    return txTable(t, function (seats) {
+      Object.keys(seats).forEach(function (k) { if (seats[k] && seats[k].id === deviceId) delete seats[k]; });
+      return seats;
+    }).catch(function () {});
+  }
+  function markRevealed(t, seat, round) {
+    return txTable(t, function (seats) {
+      var e = seats["s" + seat];
+      if (e && e.id === deviceId) { e.rev = e.rev || []; if (e.rev.indexOf(round) < 0) e.rev.push(round); }
+      return seats;
+    }).catch(function () {});
+  }
+  var joinWatch = null, mgWatch = null, stWatch = null;
+
+  // ------------------------------------------------------------------
+  // Participant
+  // ------------------------------------------------------------------
+  var P_KEY = "kwh.player.v1";
+  var player = sanitizePlayer(store.get(P_KEY, null));
+
+  function freshProgress() {
+    return { day: dayKey(), round: 0, maxRound: 0, revealed: GROUPS.map(function () { return false; }) };
+  }
+  function sanitizePlayer(p) {
+    if (!p || typeof p !== "object") return null;
+    if (typeof p.name !== "string" || !p.name.trim()) return null;
+    if (!(p.seat >= 2 && p.seat <= MAX_SEATS) || !(p.table >= 1 && p.table <= 99)) return null; // 1 is the manager
+    if (p.day !== dayKey() || !Array.isArray(p.revealed) || p.revealed.length !== GROUPS.length) {
+      var f = freshProgress();
+      p.day = f.day; p.round = f.round; p.maxRound = f.maxRound; p.revealed = f.revealed;
+    }
+    p.round = clamp(p.round | 0, 0, LAST);
+    p.maxRound = clamp(Math.max(p.maxRound | 0, p.round), 0, LAST);
+    return p;
+  }
+  function savePlayer() { store.set(P_KEY, player); }
+
+  // ---- join (participant or table manager) ----
+  var joinForm = $("#join-form");
+  var inName = $("#in-name"), inTable = $("#in-table"), seatGrid = $("#seat-grid");
+  var ROLE_KEY = "kwh.role.v1";
+  var role = store.get(ROLE_KEY, "player") === "manager" ? "manager" : "player";
+  var joinRole = role, joinCount = 8, hashTable = null, confirmedTable = 0;
+  var seatAuto = true, bannerSeat = 0;
+  function useAuto() { return joinRole === "player" && seatAuto && liveOn(); }
+
+  function setJoinRole(r) {
+    joinRole = r;
+    var m = r === "manager";
+    $("#role-player").setAttribute("aria-pressed", String(!m));
+    $("#role-manager").setAttribute("aria-pressed", String(m));
+    $("#count-field").hidden = !m;
+    $("#seat-field").hidden = m || useAuto();
+    $("#auto-note").hidden = m || !useAuto();
+    $("#seat-legend").textContent = "اختار رقمك (هو دورك بالحكي)";
+    $("#join-submit").textContent = m ? "افتح شاشة المدير" : "يلّا نبلّش";
+    $("#role-note").textContent = m ? "مدير الطاولة بيدير الأدوار والمؤقّت، وبيشوف كلمة كل واحد والأسئلة المساعدة." : "";
+  }
+  function joinStep(name) {
+    ["table", "confirm", "seat"].forEach(function (n) { $("#step-" + n).hidden = n !== name; });
+    $("#table-error").hidden = true;
+    $("#join-error").hidden = true;
+  }
+  function readTable() {
+    var t = parseInt(inTable.value, 10);
+    return t >= 1 && t <= 99 ? t : 0;
+  }
+  function askConfirm() {
+    var t = readTable();
+    if (!t) {
+      var e = $("#table-error");
+      e.textContent = inTable.value.trim() ? "رقم الطاولة لازم يكون بين 1 و-99." : "اكتب رقم الطاولة. الرقم مكتوب على كرت الطاولة.";
+      e.hidden = false; inTable.focus();
+      return;
+    }
+    $("#confirm-table").textContent = "طاولة " + t;
+    joinStep("confirm");
+    $("#confirm-yes").focus();
+  }
+  var takenSeats = {}, mgrForce = false;
+  function tableConfirmed() {
+    confirmedTable = readTable();
+    $("#chip-table").textContent = "طاولة " + confirmedTable;
+    joinStep("seat");
+    if (!inName.value) inName.focus();
+    mgrForce = false;
+    if (joinWatch) { joinWatch(); joinWatch = null; }
+    takenSeats = {};
+    paintTaken(null);
+    joinWatch = watchTable(confirmedTable, paintTaken);
+  }
+  // Show who holds which number at this table; numbers held by others lock.
+  function paintTaken(seats) {
+    takenSeats = {};
+    if (seats) Object.keys(seats).forEach(function (k) {
+      var e = seats[k];
+      if (e && e.id !== deviceId) takenSeats[Number(k.slice(1))] = e.name || "حدا";
+    });
+    seatGrid.querySelectorAll("input").forEach(function (inp) {
+      var n = Number(inp.value), lab = seatGrid.querySelector('label[for="' + inp.id + '"]');
+      var holder = takenSeats[n];
+      lab.textContent = String(n);
+      if (n === 1) { lab.appendChild(el("small", null, holder ? "المدير · " + holder : "المدير")); return; }
+      lab.classList.toggle("taken", !!holder);
+      if (holder) lab.appendChild(el("small", null, holder));
+      if (holder && inp.checked) {
+        inp.checked = false;
+        joinError("رقم " + n + " صار محجوز لـ" + holder + ". اختار رقم ثاني.");
+      }
+    });
+    var count = Object.keys(takenSeats).length;
+    $("#seat-live").textContent = seats ? (count ? "الأرقام المحجوزة مسكّرة، وعليها أسماء أصحابها." : "لسّا ما حدا اختار رقم على هالطاولة.") : "";
+  }
+  seatGrid.addEventListener("change", function (e) {
+    var n = Number(e.target.value);
+    if (takenSeats[n]) {
+      e.target.checked = false;
+      joinError("رقم " + n + " محجوز لـ" + takenSeats[n] + ". اختار رقم ثاني.");
+    } else $("#join-error").hidden = true;
+  });
+  function showJoin(r) {
+    var want = r || joinRole;
+    var src = want === "manager" ? (mgr || player) : (player || mgr);
+    setSuit(0);
+    inName.value = src ? src.name : "";
+    inTable.value = hashTable || (src && src.table) || "";
+    $("#table-note").textContent = hashTable ? "رقم الطاولة إجا من رمز الطاولة." : "الرقم مكتوب على كرت الطاولة.";
+    var s = src && want === "player" ? src.seat : 0;
+    seatGrid.querySelectorAll("input").forEach(function (i) { i.checked = Number(i.value) === s; });
+    joinCount = (mrun && mrun.st.count) || 8;
+    $("#in-count").textContent = joinCount;
+    seatAuto = true;
+    setJoinRole(want);
+    showView("join");
+    // A table's own QR already says which table: go straight to the name.
+    // Someone fixing their name keeps the table they already confirmed.
+    if (hashTable) { inTable.value = hashTable; tableConfirmed(); }
+    else if (src && src.table) { inTable.value = src.table; tableConfirmed(); }
+    else joinStep("table");
+  }
+  function joinError(msg, focusEl) {
+    var e = $("#join-error");
+    e.textContent = msg; e.hidden = false;
+    if (focusEl) focusEl.focus();
+  }
+  $("#to-confirm").addEventListener("click", askConfirm);
+  $("#confirm-yes").addEventListener("click", tableConfirmed);
+  $("#confirm-no").addEventListener("click", function () { joinStep("table"); inTable.focus(); inTable.select(); });
+  $("#chip-change").addEventListener("click", function () { joinStep("table"); inTable.focus(); inTable.select(); });
+  $("#role-player").addEventListener("click", function () { setJoinRole("player"); });
+  $("#role-manager").addEventListener("click", function () { setJoinRole("manager"); });
+  $("#tbl-minus").addEventListener("click", function () { inTable.value = clamp((parseInt(inTable.value, 10) || 1) - 1, 1, 99); });
+  $("#tbl-plus").addEventListener("click", function () { inTable.value = clamp((parseInt(inTable.value, 10) || 0) + 1, 1, 99); });
+  $("#cnt-minus").addEventListener("click", function () { joinCount = clamp(joinCount - 1, 2, MAX_SEATS); $("#in-count").textContent = joinCount; });
+  $("#cnt-plus").addEventListener("click", function () { joinCount = clamp(joinCount + 1, 2, MAX_SEATS); $("#in-count").textContent = joinCount; });
+
+  joinForm.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    // Enter on the first two steps moves forward instead of submitting.
+    if (!$("#step-table").hidden) { askConfirm(); return; }
+    if (!$("#step-confirm").hidden) { tableConfirmed(); return; }
+    var name = inName.value.trim().replace(/\s+/g, " ").slice(0, 30);
+    var table = confirmedTable;
+    var seatEl = seatGrid.querySelector("input:checked");
+    var m = joinRole === "manager";
+    if (!name) return joinError("اكتب اسمك عشان نبلّش.", inName);
+    if (!(table >= 1 && table <= 99)) { joinStep("table"); return; }
+    if (useAuto()) {
+      var abtn = $("#join-submit"), alabel = abtn.textContent;
+      var aprev = player && player.table;
+      abtn.disabled = true; abtn.textContent = "عم نعطيك رقم…";
+      claimNextSeat(table, name).then(function (got) {
+        abtn.disabled = false; abtn.textContent = alabel;
+        if (aprev && aprev !== table) releaseSeats(aprev);
+        bannerSeat = got;
+        finishJoin(name, table, got, false);
+      }, function (err) {
+        abtn.disabled = false; abtn.textContent = alabel;
+        if (err && err.code === "full") return joinError("طاولة " + table + " مليانة (10 أشخاص). اسأل المنظّمين عن طاولة ثانية.");
+        seatAuto = false; // no connection: let them pick a number by hand
+        setJoinRole("player");
+        joinError("ما قدرنا نعطيك رقم لحاله. اختار رقمك وكمّل.");
+      });
+      return;
+    }
+    if (!m && !seatEl) return joinError("اختار رقمك. رقم 1 للمدير.");
+    var seat = m ? 1 : Number(seatEl.value);
+    if (!m && takenSeats[seat]) return joinError("رقم " + seat + " محجوز لـ" + takenSeats[seat] + ". اختار رقم ثاني.");
+    if (liveOn()) {
+      var btn = $("#join-submit"), label = btn.textContent;
+      var prevTable = m ? (mgr && mgr.table) : (player && player.table);
+      btn.disabled = true; btn.textContent = "عم نحجز رقمك…";
+      claimSeat(table, seat, name, m ? "m" : "p", m && mgrForce).then(function () {
+        btn.disabled = false; btn.textContent = label;
+        if (prevTable && prevTable !== table) releaseSeats(prevTable);
+        finishJoin(name, table, seat, m);
+      }, function (err) {
+        btn.disabled = false; btn.textContent = label;
+        if (err && err.code === "taken") {
+          if (m) {
+            mgrForce = true;
+            joinError("طاولة " + table + " إلها مدير: " + err.holder + ". إذا هو مش معك، اكبس «افتح شاشة المدير» مرة ثانية وبتصير إنت المدير.");
+          } else joinError("رقم " + seat + " محجوز لـ" + err.holder + ". اختار رقم ثاني.");
+          return;
+        }
+        finishJoin(name, table, seat, m); // offline: let them play anyway
+      });
+      return;
+    }
+    finishJoin(name, table, seat, m);
+  });
+
+  function finishJoin(name, table, seat, m) {
+    role = m ? "manager" : "player";
+    store.set(ROLE_KEY, role);
+    if (m) {
+      var tableChanged = !mgr || mgr.table !== table;
+      mgr = { name: name, table: table, seat: seat, names: (mgr && mgr.names) || {} };
+      saveMgr();
+      mrun.st.count = joinCount;
+      if (tableChanged) { mrun.st.seg = 0; mrun.st.done = []; mrun.st.current = 0; mrun.st.phase = "ready"; }
+      mrun.save();
+      showManager();
+      return;
+    }
+    var changed = !player || player.seat !== seat || player.table !== table;
+    var base = player || {};
+    base.name = name; base.table = table; base.seat = seat;
+    if (!player) { var f = freshProgress(); base.day = f.day; base.round = 0; base.maxRound = 0; base.revealed = f.revealed; }
+    else if (changed) { base.revealed = freshProgress().revealed; } // new seat or table = new words; keep the round
+    player = sanitizePlayer(base);
+    savePlayer();
+    showPlay();
+  }
+
+  // ---- play ----
+  var card = $("#card"), cardInner = $("#card-inner");
+  var shuffling = false;
+
+  function showPlay() { showView("play"); renderPlay(); }
+  function paintBanner() {
+    var on = !!(bannerSeat && player && bannerSeat === player.seat);
+    $("#join-banner").hidden = !on;
+    if (on) { $("#jb-table").textContent = "طاولة " + player.table; $("#jb-seat").textContent = player.seat; }
+  }
+  $("#jb-ok").addEventListener("click", function () { bannerSeat = 0; paintBanner(); });
+
+  function renderPlay() {
+    var r = player.round, g = GROUPS[r];
+    setSuit(r);
+    paintBanner();
+    $("#p-avatar").textContent = player.name.charAt(0);
+    $("#p-name").textContent = player.name;
+    $("#p-meta").textContent = "طاولة " + player.table + " · رقم " + player.seat;
+
+    var pips = $("#pips");
+    pips.textContent = "";
+    GROUPS.forEach(function (gr, i) {
+      var b = el("button", "pip");
+      b.type = "button";
+      b.style.setProperty("--pc", "var(--s" + (i + 1) + ")");
+      if (i <= player.maxRound) b.classList.add("reached");
+      if (i === r) { b.classList.add("current"); b.setAttribute("aria-current", "step"); }
+      b.setAttribute("aria-label", "الجولة " + (i + 1) + ": " + gr.title);
+      b.addEventListener("click", function () {
+        if (shuffling || i === player.round) return;
+        player.round = i; player.maxRound = Math.max(player.maxRound, i); savePlayer(); renderPlay();
+      });
+      pips.appendChild(b);
+    });
+
+    $("#r-count").textContent = "الجولة " + (r + 1) + " من " + GROUPS.length;
+    $("#r-title").textContent = g.title;
+    $("#r-desc").textContent = g.desc;
+    $("#c-back-round").textContent = "الجولة " + (r + 1);
+    $("#c-round").textContent = "جولة " + (r + 1);
+    $("#c-seat").textContent = "رقم " + player.seat;
+    $("#c-group").textContent = g.title;
+    $("#q-text").textContent = g.question;
+    $("#next-label").textContent = r === LAST ? "خلصنا" : "الجولة التالية";
+
+    var revealed = !!player.revealed[r];
+    cardInner.classList.add("instant");
+    card.classList.remove("shuffling", "landed");
+    card.classList.toggle("flipped", revealed);
+    $("#c-word").textContent = revealed ? wordFor(player.table, r, player.seat) : "";
+    // force the instant state to apply before re-enabling the flip transition
+    void cardInner.offsetWidth;
+    cardInner.classList.remove("instant");
+
+    $("#draw-block").hidden = revealed;
+    $("#q-block").hidden = !revealed;
+    $("#btn-shuffle").disabled = false;
+    $("#shuffle-label").textContent = "اخلط واسحب كلمتك";
+  }
+
+  function doShuffle() {
+    if (shuffling) return;
+    shuffling = true;
+    bannerSeat = 0; paintBanner();
+    var r = player.round, g = GROUPS[r];
+    var finalWord = wordFor(player.table, r, player.seat);
+    var btn = $("#btn-shuffle"), cWord = $("#c-word");
+    btn.disabled = true;
+    $("#shuffle-label").textContent = "عم نخلط…";
+
+    var pool = g.words.filter(function (w) { return w !== finalWord; });
+    for (var i = pool.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
+
+    var run = Promise.resolve();
+    if (!reduceMotion) {
+      run = run.then(function () {
+        cWord.textContent = pool[0];
+        card.classList.add("flipped", "shuffling");
+        return wait(380);
+      }).then(function () {
+        var delay = 55, k = 1;
+        function step() {
+          if (delay > 270) return Promise.resolve();
+          cWord.textContent = pool[k++ % pool.length];
+          return wait(delay).then(function () { delay *= 1.13; return step(); });
+        }
+        return step();
+      });
+    }
+    run.then(function () {
+      cWord.textContent = finalWord;
+      card.classList.remove("shuffling");
+      card.classList.add("flipped");
+      if (!reduceMotion) card.classList.add("landed");
+      vibrate(40);
+      player.revealed[r] = true;
+      savePlayer();
+      if (liveOn()) markRevealed(player.table, player.seat, r);
+      setTimeout(function () { card.classList.remove("landed"); }, 600);
+      $("#draw-block").hidden = true;
+      var q = $("#q-block");
+      q.hidden = false;
+      try { q.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest" }); } catch (e) {}
+      shuffling = false;
+    });
+  }
+  $("#btn-shuffle").addEventListener("click", doShuffle);
+
+  $("#btn-next").addEventListener("click", function () {
+    if (player.round < LAST) {
+      player.round += 1;
+      player.maxRound = Math.max(player.maxRound, player.round);
+      savePlayer();
+      renderPlay();
+      try { window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" }); } catch (e) {}
+    } else {
+      showEnd();
+    }
+  });
+  $("#btn-edit").addEventListener("click", function () { showJoin("player"); });
+
+  // ---- end ----
+  function showEnd() {
+    setSuit(LAST);
+    $("#end-who").textContent = player.name + " · طاولة " + player.table;
+    var list = $("#end-list");
+    list.textContent = "";
+    GROUPS.forEach(function (g, i) {
+      var li = el("li");
+      li.style.setProperty("--pc", "var(--s" + (i + 1) + ")");
+      var revealed = player.revealed[i];
+      var mc = el("span", "mini-card" + (revealed ? "" : " empty"), revealed ? wordFor(player.table, i, player.seat) : "ما انسحبت");
+      var tx = el("span", "wl-text");
+      tx.appendChild(el("small", null, "الجولة " + (i + 1)));
+      tx.appendChild(el("span", null, g.title));
+      li.appendChild(mc); li.appendChild(tx);
+      list.appendChild(li);
+    });
+    showView("end");
+  }
+  $("#btn-back-rounds").addEventListener("click", function () { player.round = LAST; savePlayer(); showPlay(); });
+
+  // ---- participant timer overlay ----
+  var ptEl = $("#p-timer");
+  var ptDuration = clamp(store.get("kwh.ptimer.v1", 120) | 0, 30, 600);
+  var pTimer = makeTimer(function (rem, t) {
+    $("#pt-digits").textContent = fmtClock(rem);
+    $("#pt-bar").style.width = (clamp(rem / (t.duration * 1000), 0, 1) * 100) + "%";
+    ptEl.classList.toggle("over", rem <= 0);
+    $("#pt-status").textContent = rem <= 0 ? "خلص الوقت" : (rem <= 15000 && t.running ? "آخر ثواني" : "");
+    $("#pt-start").textContent = t.running ? "وقّف" : (t.elapsed() > 0 ? "كمّل" : "ابدأ");
+  }, function () { chime(); vibrate([220, 120, 220]); });
+  pTimer.setDuration(ptDuration);
+
+  function openPTimer() {
+    $("#pt-word").textContent = wordFor(player.table, player.round, player.seat);
+    pTimer.reset();
+    ptEl.hidden = false;
+    $("#pt-close").focus();
+  }
+  function closePTimer() {
+    pTimer.reset();
+    ptEl.hidden = true;
+    $("#btn-timer").focus();
+  }
+  $("#btn-timer").addEventListener("click", openPTimer);
+  $("#pt-close").addEventListener("click", closePTimer);
+  $("#pt-start").addEventListener("click", function () {
+    unlockAudio();
+    if (pTimer.running) pTimer.pause(); else { pTimer.start(); keepAwake(); }
+  });
+  $("#pt-reset").addEventListener("click", function () { pTimer.reset(); });
+  function adjustPT(delta) {
+    ptDuration = clamp(ptDuration + delta, 30, 600);
+    store.set("kwh.ptimer.v1", ptDuration);
+    pTimer.setDuration(ptDuration);
+  }
+  $("#pt-minus").addEventListener("click", function () { adjustPT(-30); });
+  $("#pt-plus").addEventListener("click", function () { adjustPT(30); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !ptEl.hidden) closePTimer(); });
+
+  // ------------------------------------------------------------------
+  // Shared link + QR codes (qrcode-generator, UTF-8 so Arabic survives)
+  // ------------------------------------------------------------------
+  var LINK_KEY = "kwh.link.v1";
+  var appLink = (function () {
+    var saved = store.get(LINK_KEY, "");
+    if (saved) return saved;
+    var standalone = false;
+    try { standalone = window.self === window.top && /^https?:$/.test(location.protocol); } catch (e) {}
+    return standalone ? location.origin + location.pathname : PUBLIC_LINK;
+  })();
+  function baseLink() {
+    var b = (appLink || "").trim().replace(/#.*$/, "");
+    return /^https?:\/\/\S+$/i.test(b) ? b : "";
+  }
+  var qrLib = null;
+  function loadQRLib() {
+    if (window.qrcode) return Promise.resolve();
+    if (qrLib) return qrLib;
+    qrLib = new Promise(function (res, rej) {
+      var s = document.createElement("script");
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js";
+      s.onload = function () { res(); };
+      s.onerror = function () { qrLib = null; rej(new Error("qr")); };
+      document.head.appendChild(s);
+    });
+    return qrLib;
+  }
+  function paintQR(canvas, text, size) {
+    var lib = window.qrcode;
+    if (lib.stringToBytesFuncs && lib.stringToBytesFuncs["UTF-8"]) lib.stringToBytes = lib.stringToBytesFuncs["UTF-8"];
+    var qr = lib(0, "M");
+    qr.addData(text, "Byte");
+    qr.make();
+    var n = qr.getModuleCount(), quiet = 2, cells = n + quiet * 2;
+    var scale = Math.max(2, Math.floor(size / cells)), px = cells * scale;
+    canvas.width = px; canvas.height = px;
+    var ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, px, px);
+    ctx.fillStyle = "#111318";
+    for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) {
+      if (qr.isDark(r, c)) ctx.fillRect((c + quiet) * scale, (r + quiet) * scale, scale, scale);
+    }
+  }
+  function drawQRTo(canvas, empty, value, size) {
+    if (!value) {
+      canvas.hidden = true; empty.hidden = false;
+      empty.textContent = "الصق رابط الصفحة وبيطلع الرمز هون.";
+      return;
+    }
+    loadQRLib().then(function () {
+      paintQR(canvas, value, size);
+      canvas.hidden = false; empty.hidden = true;
+    }).catch(function () {
+      canvas.hidden = true; empty.hidden = false;
+      empty.textContent = "ما قدرنا نحمّل مولّد الرمز. تأكّد إنه في إنترنت.";
+    });
+  }
+
+  // ------------------------------------------------------------------
+  // My card: a contact QR (vCard) built on the phone. Tablemates scan it
+  // with their camera to save the contact. Nothing leaves the device.
+  // ------------------------------------------------------------------
+  var C_KEY = "kwh.card.v1";
+  var myCard = store.get(C_KEY, {}) || {};
+  function vcardEsc(v) { return String(v).replace(/\\/g, "\\\\").replace(/\r?\n/g, "\\n").replace(/([,;])/g, "\\$1"); }
+  function vcard(c) {
+    var L = ["BEGIN:VCARD", "VERSION:3.0", "N:;" + vcardEsc(c.name) + ";;;", "FN:" + vcardEsc(c.name)];
+    if (c.job) L.push("TITLE:" + vcardEsc(c.job));
+    if (c.tel) L.push("TEL;TYPE=CELL:" + c.tel.replace(/[^\d+]/g, ""));
+    if (c.link) {
+      if (/@/.test(c.link) && !/^https?:/i.test(c.link)) L.push("EMAIL:" + vcardEsc(c.link));
+      else L.push("URL:" + vcardEsc(/^https?:/i.test(c.link) ? c.link : "https://" + c.link));
+    }
+    L.push("NOTE:" + vcardEsc("تعرّفنا بفعالية «كلمة وراها حكاية»"));
+    L.push("END:VCARD");
+    return L.join("\r\n");
+  }
+  function showCard() {
+    var me = role === "manager" ? mgr : player;
+    setSuit(0);
+    $("#cd-name").value = myCard.name || (me && me.name) || "";
+    $("#cd-job").value = myCard.job || "";
+    $("#cd-tel").value = myCard.tel || "";
+    $("#cd-link").value = myCard.link || "";
+    $("#card-error").hidden = true;
+    var ready = !!(myCard.ready && myCard.name && (myCard.tel || myCard.link));
+    $("#card-form").hidden = ready;
+    $("#card-qr").hidden = !ready;
+    $("#card-back").textContent = role === "manager" ? "رجوع لشاشة المدير" : "رجوع للجولات";
+    showView("card");
+    if (ready) renderCardQR();
+  }
+  function renderCardQR() {
+    var canvas = $("#cd-canvas"), empty = $("#cd-empty");
+    canvas.hidden = true; empty.hidden = false; empty.textContent = "عم نعمل الرمز…";
+    loadQRLib().then(function () {
+      paintQR(canvas, vcard(myCard), 600);
+      canvas.hidden = false; empty.hidden = true;
+    }).catch(function () {
+      empty.textContent = "ما قدرنا نعمل الرمز. تأكّد إنه في إنترنت وجرّب كمان مرة.";
+    });
+  }
+  $("#card-form").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var c = {
+      name: $("#cd-name").value.trim().slice(0, 40),
+      job: $("#cd-job").value.trim().slice(0, 60),
+      tel: $("#cd-tel").value.trim().slice(0, 20),
+      link: $("#cd-link").value.trim().slice(0, 120)
+    };
+    var err = $("#card-error");
+    if (!c.name) { err.textContent = "اكتب اسمك."; err.hidden = false; $("#cd-name").focus(); return; }
+    if (!c.tel && !c.link) { err.textContent = "اكتب رقم تلفون أو إيميل أو LinkedIn، عشان يقدروا يتواصلوا معك."; err.hidden = false; $("#cd-tel").focus(); return; }
+    c.ready = true;
+    myCard = c;
+    store.set(C_KEY, myCard);
+    $("#card-form").hidden = true;
+    $("#card-qr").hidden = false;
+    renderCardQR();
+  });
+  $("#cd-edit").addEventListener("click", function () { $("#card-qr").hidden = true; $("#card-form").hidden = false; $("#cd-job").focus(); });
+  $("#card-back").addEventListener("click", function () {
+    if (role === "manager" && mgr) showManager(); else if (player) showPlay(); else showJoin();
+  });
+  $("#btn-card").addEventListener("click", showCard);
+  $("#btn-end-card").addEventListener("click", showCard);
+
+  // ------------------------------------------------------------------
+  // The evening's program, shared by the table manager and the room
+  // screen: a quick intro, the five word rounds, a closing give & get.
+  // A round runs: 1 minute to draw and prepare, the seat-by-seat turns,
+  // then 3 minutes of open table talk.
+  // ------------------------------------------------------------------
+  var PREP_SEC = 60, TALK_SEC = 180;
+  var INTRO = { eyebrow: "قبل الجولات", title: "تعارف سريع", per: 30,
+    ready: "كل واحد بيعرّف عن حاله بـ30 ثانية",
+    prompt: "اسمك، شو بتشتغل، وشو بتدوّر عليه هالفترة." };
+  var CLOSE = { eyebrow: "الختام", title: "طلب وعرض", per: 45,
+    ready: "كل واحد: إشي بيقدّمه وإشي بيدوّر عليه",
+    prompt: "45 ثانية لكل واحد: إشي بتقدر تقدّمه لغيرك، وإشي بتدوّر عليه. إذا بتعرف حدا بيقدر يساعد، احكي." };
+  var TALK_PROMPT = "مين مرّ بتجربة مشابهة لحكاية سمعها هالجولة؟ احكوا مع بعض.";
+  var SEGS = [{ kind: "intro" }];
+  GROUPS.forEach(function (g, i) { SEGS.push({ kind: "round", r: i }); });
+  SEGS.push({ kind: "close" });
+  var LAST_SEG = SEGS.length - 1;
+  function segInfo(sg) {
+    if (sg.kind === "intro") return INTRO;
+    if (sg.kind === "close") return CLOSE;
+    return { eyebrow: "الجولة " + (sg.r + 1) + " من " + GROUPS.length, title: GROUPS[sg.r].title, per: 0 };
+  }
+  function segSuit(sg) { return sg.kind === "round" ? sg.r : (sg.kind === "intro" ? 0 : LAST); }
+
+  // One runner drives one screen through the program: phases are
+  // ready -> prep -> turns -> talk -> done (rounds), ready -> turns -> done
+  // (intro, close), or ready -> block -> done when the room screen only
+  // keeps time for tables that have their own manager.
+  function makeRunner(cfg) {
+    var st = (function () {
+      var d = { count: 8, duration: 90, seg: 0, phase: "ready", done: [], current: 0, auto: true, managed: true, day: dayKey() };
+      var s = store.get(cfg.key, {}) || {};
+      Object.keys(d).forEach(function (k) { if (s[k] !== undefined && typeof s[k] === typeof d[k]) d[k] = s[k]; });
+      if (!Array.isArray(d.done)) d.done = [];
+      d.count = clamp(d.count | 0, 2, MAX_SEATS);
+      d.seg = clamp(d.seg | 0, 0, LAST_SEG);
+      if ([60, 90, 120, 150, 180].indexOf(d.duration) < 0) d.duration = 90;
+      if (["ready", "prep", "turns", "talk", "block", "done"].indexOf(d.phase) < 0) d.phase = "ready";
+      if (d.day !== dayKey()) { d.day = dayKey(); d.seg = 0; d.phase = "ready"; d.done = []; d.current = 0; }
+      return d;
+    })();
+    var graceIv = null, graceLeft = 0;
+    var R = { st: st };
+    R.save = function () { store.set(cfg.key, st); };
+    R.seg = function () { return SEGS[st.seg]; };
+    R.isRound = function () { return R.seg().kind === "round"; };
+    R.isLive = function () { return ["prep", "turns", "talk", "block"].indexOf(st.phase) >= 0; };
+    R.blockMode = function () { return !!(cfg.blockMode && cfg.blockMode()); };
+    R.perTurn = function () { return R.isRound() ? st.duration : segInfo(R.seg()).per; };
+    R.segTotal = function () { return R.isRound() ? PREP_SEC + st.count * st.duration + TALK_SEC : st.count * segInfo(R.seg()).per; };
+    R.phaseSec = function () {
+      if (st.phase === "prep") return PREP_SEC;
+      if (st.phase === "talk") return TALK_SEC;
+      if (st.phase === "block") return R.segTotal();
+      return R.perTurn();
+    };
+    R.order = function () {
+      var n = st.count, sg = R.seg(), start = sg.kind === "round" ? sg.r % n : 0, out = [];
+      for (var i = 0; i < n; i++) out.push(((start + i) % n) + 1);
+      return out;
+    };
+    R.next = function () {
+      var ord = R.order(), n = ord.length, i = ord.indexOf(st.current);
+      for (var k = 1; k <= n; k++) {
+        var seat = ord[((i < 0 ? -1 : i) + k + n) % n];
+        if (seat !== st.current && st.done.indexOf(seat) < 0) return seat;
+      }
+      return 0;
+    };
+    R.normalize = function () {
+      st.done = st.done.filter(function (x) { return x >= 1 && x <= st.count; });
+      if ((st.phase === "prep" || st.phase === "talk") && !R.isRound()) st.phase = "ready";
+      if (st.phase === "block" && !R.blockMode()) st.phase = "ready";
+      if (R.blockMode() && ["prep", "turns", "talk"].indexOf(st.phase) >= 0) st.phase = "ready";
+      if (st.phase === "turns" && !(st.current >= 1 && st.current <= st.count)) {
+        st.current = R.next();
+        if (!st.current) st.phase = R.isRound() ? "talk" : "done";
+      }
+      if (R.timer.duration !== R.phaseSec()) R.timer.setDuration(R.phaseSec());
+    };
+    R.cancelGrace = function () { if (graceIv) { clearInterval(graceIv); graceIv = null; } graceLeft = 0; };
+    function graceText() {
+      if (st.phase === "prep") return "الأدوار بتبلّش بعد " + graceLeft;
+      if (st.phase === "talk" || st.phase === "block") return (R.isRound() ? "الجولة" : "الفقرة") + " بتخلص بعد " + graceLeft;
+      var nx = R.next();
+      if (nx) return "رقم " + nx + " بعد " + graceLeft;
+      return R.isRound() ? "النقاش المفتوح بعد " + graceLeft : "الفقرة بتخلص بعد " + graceLeft;
+    }
+    R.statusText = function (rem) {
+      if (rem <= 0) return graceLeft > 0 ? "خلص الوقت · " + graceText() : "خلص الوقت";
+      if (rem <= 15000 && R.timer.running) return "آخر ثواني";
+      return "";
+    };
+    function startGrace() {
+      R.cancelGrace();
+      graceLeft = 5;
+      R.timer.refresh();
+      graceIv = setInterval(function () {
+        graceLeft -= 1;
+        if (graceLeft <= 0) { R.cancelGrace(); R.skip(); } else R.timer.refresh();
+      }, 1000);
+    }
+    R.timer = makeTimer(function (rem, t) { cfg.onTick(rem, t); }, function () {
+      chime(); vibrate([220, 120, 220]);
+      if (st.auto) startGrace();
+    });
+    R.timer.setDuration(R.phaseSec());
+    R.enter = function (phase, start) {
+      R.cancelGrace();
+      st.phase = phase;
+      if (phase === "turns") { st.done = []; st.current = R.order()[0]; }
+      if (phase === "ready" || phase === "done" || phase === "block") st.current = 0;
+      R.timer.setDuration(R.phaseSec());
+      R.timer.reset();
+      if (start && R.isLive()) { R.timer.start(); keepAwake(); }
+      R.save(); cfg.render();
+    };
+    // Move one step forward and start whatever comes next.
+    R.skip = function () {
+      unlockAudio();
+      R.cancelGrace();
+      var ph = st.phase;
+      if (ph === "prep") { R.enter("turns", true); return; }
+      if (ph === "talk" || ph === "block") { R.enter("done", false); return; }
+      if (ph !== "turns") return;
+      if (st.current && st.done.indexOf(st.current) < 0) st.done.push(st.current);
+      var nx = R.next();
+      if (!nx) { R.enter(R.isRound() ? "talk" : "done", true); return; }
+      st.current = nx;
+      R.timer.reset(); R.timer.start(); keepAwake();
+      R.save(); cfg.render();
+    };
+    R.goSeg = function (i) { st.seg = clamp(i, 0, LAST_SEG); st.done = []; R.enter("ready", false); };
+    R.main = function () {
+      unlockAudio();
+      if (st.phase === "ready") { R.enter(R.blockMode() ? "block" : (R.isRound() ? "prep" : "turns"), true); return; }
+      if (st.phase === "done") { if (st.seg < LAST_SEG) R.goSeg(st.seg + 1); return; }
+      R.cancelGrace();
+      if (R.timer.running) R.timer.pause(); else { R.timer.start(); keepAwake(); }
+      cfg.render();
+    };
+    R.resetTimer = function () { R.cancelGrace(); R.timer.reset(); cfg.render(); };
+    R.giveTurn = function (seat) {
+      R.cancelGrace();
+      st.phase = "turns";
+      st.done = st.done.filter(function (x) { return x !== seat; });
+      st.current = seat;
+      R.timer.setDuration(R.phaseSec());
+      R.timer.reset();
+      R.save(); cfg.render();
+    };
+    R.runLabel = function () { return R.timer.running ? "وقّف" : (R.timer.elapsed() > 0 ? "كمّل" : "ابدأ"); };
+    R.skipLabel = function () { return st.phase === "prep" ? "بلّشوا الأدوار" : (st.phase === "talk" || st.phase === "block") ? "خلّصوا" : "التالي"; };
+    R.estimate = function () {
+      var n = st.count, roundMin = Math.round((PREP_SEC + n * st.duration + TALK_SEC) / 60);
+      var introMin = Math.round(n * INTRO.per / 60), closeMin = Math.round(n * CLOSE.per / 60);
+      return "كل جولة ≈ " + roundMin + " دقيقة (دقيقة تحضير، " + n + " × " + fmtDur(st.duration) +
+        "، و3 دقائق نقاش). التعارف ≈ " + introMin + " والختام ≈ " + closeMin + ". كل البرنامج ≈ " +
+        (introMin + GROUPS.length * roundMin + closeMin) + " دقيقة.";
+    };
+    return R;
+  }
+  function paintTimer(prefix, rem, t, status) {
+    $("#" + prefix + "-digits").textContent = fmtClock(rem);
+    $("#" + prefix + "-bar").style.width = (clamp(rem / (t.duration * 1000), 0, 1) * 100) + "%";
+    var st = $("#" + prefix + "-status");
+    if (st) st.textContent = status;
+  }
+
+  // ------------------------------------------------------------------
+  // Table manager (#facilitator): one person per table runs turns and
+  // time from their phone. Everything is worked out from the table
+  // number, so the manager sees each seat's word without a server.
+  // ------------------------------------------------------------------
+  var MG_KEY = "kwh.manager.v1";
+  var mgr = (function () {
+    var m = store.get(MG_KEY, null);
+    if (!m || typeof m !== "object" || typeof m.name !== "string" || !(m.table >= 1 && m.table <= 99)) return null;
+    m.seat = 1; // the manager is always number 1
+    if (!m.names || typeof m.names !== "object") m.names = {};
+    return m;
+  })();
+  function saveMgr() { store.set(MG_KEY, mgr); }
+  var mgRevealAll = false;
+  var mrun = makeRunner({
+    key: "kwh.mrun.v1",
+    onTick: function (rem, t) {
+      paintTimer("mg", rem, t, mrun ? mrun.statusText(rem) : "");
+      var box = $("#mg-timer");
+      box.classList.toggle("warn", rem > 0 && rem <= 15000);
+      box.classList.toggle("over", rem <= 0);
+      if (mrun && mrun.isLive()) $("#mg-main").textContent = mrun.runLabel();
+    },
+    render: function () { renderManager(); }
+  });
+
+  var mgLive = null; // seats map from the live table, or null
+  function liveEntry(seat) { return mgLive && mgLive["s" + seat]; }
+  function seatName(seat) {
+    var t = mgr && mgr.names[mgr.table];
+    var n = (t && t[seat]) || "";
+    if (!n) { var e = liveEntry(seat); if (e && e.name) n = e.name; }
+    if (!n && mgr && seat === mgr.seat) n = mgr.name;
+    return n;
+  }
+  function mgLiveText() {
+    if (!mgLive) return "";
+    var st = mrun.st, sg = mrun.seg(), joined = 0, drew = 0;
+    for (var s = 1; s <= st.count; s++) {
+      var e = liveEntry(s);
+      if (e) { joined++; if (sg.kind === "round" && e.rev && e.rev.indexOf(sg.r) >= 0) drew++; }
+    }
+    var txt = "دخلوا " + joined + " من " + st.count;
+    if (sg.kind === "round" && (st.phase === "ready" || st.phase === "prep")) txt += " · سحبوا كلمة الجولة: " + drew;
+    return txt;
+  }
+  function setSeatName(seat, v) {
+    var t = mgr.names[mgr.table] || (mgr.names[mgr.table] = {});
+    if (v) t[seat] = v; else delete t[seat];
+    saveMgr();
+  }
+  function seatLabel(seat) { return seatName(seat) || ("رقم " + seat); }
+
+  function mgSay() {
+    var R = mrun, st = R.st, sg = R.seg(), ph = st.phase, first = R.order()[0];
+    if (sg.kind === "intro") {
+      if (ph === "ready") return "كل واحد بيعرّف عن حاله بـ30 ثانية: اسمه، شو بيشتغل، وشو بيدوّر عليه هالفترة. " +
+        (first === mgr.seat ? "ببلّش أنا، وبعدين بالترتيب حسب الأرقام." : "بنبلّش من رقم " + first + ".");
+      if (ph === "turns") return st.current === mgr.seat ? "دورك: عرّف عن حالك أول واحد، وهيك بتعطي مثال للطاولة." :
+        seatLabel(st.current) + "، تفضّل: اسمك، شو بتشتغل، وشو بتدوّر عليه؟";
+      return "خلصنا التعارف. الجاي: الجولة 1.";
+    }
+    if (sg.kind === "close") {
+      if (ph === "ready") return "كل واحد 45 ثانية: إشي بيقدر يقدّمه، وإشي بيدوّر عليه. إذا بتعرفوا حدا بيقدر يساعد، احكوا.";
+      if (ph === "turns") return st.current === mgr.seat ? "دورك: شو بتقدر تقدّم، وشو بتدوّر عليه؟" : seatLabel(st.current) + ": شو بتقدر تقدّم، وشو بتدوّر عليه؟";
+      return "افتحوا «بطاقتي» على التلفون، وامسحوا بطاقات بعض عشان تضلّوا على تواصل. شكرًا!";
+    }
+    var g = GROUPS[sg.r];
+    if (ph === "ready") return "افتحوا الجولة " + (sg.r + 1) + " على تلفوناتكم واكبسوا «اخلط». عندكم دقيقة تحضّروا جوابكم.";
+    if (ph === "prep") return "حضّروا جوابكم: " + g.question;
+    if (ph === "turns") return (st.current === first ? "" : "قبل ما تجاوب: جملة وحدة عن إشي لفتك بحكاية اللي قبلك. ") + g.question;
+    if (ph === "talk") return TALK_PROMPT;
+    return "خلصت الجولة. الجاي: " + segInfo(SEGS[st.seg + 1]).title + ".";
+  }
+
+  function showManager() {
+    if (!mgr) { showJoin("manager"); return; }
+    role = "manager";
+    store.set(ROLE_KEY, role);
+    showView("fac");
+    if (mgWatch) mgWatch();
+    mgLive = null;
+    mgWatch = watchTable(mgr.table, function (seats) {
+      mgLive = seats;
+      var top = 0;
+      if (seats) Object.keys(seats).forEach(function (k) { if (seats[k]) top = Math.max(top, Number(k.slice(1))); });
+      if (top > mrun.st.count) { mrun.st.count = clamp(top, 2, MAX_SEATS); mrun.save(); if (!views.fac.hidden) renderManager(); }
+      if (!views.fac.hidden) {
+        $("#mg-live").textContent = mgLiveText();
+        // Don't rebuild the roster under the manager's fingers while they type a name.
+        if (!$("#mg-seats").contains(document.activeElement)) renderMgSeats();
+        if (mrun.st.phase === "turns") $("#mg-name").textContent = mrun.st.current === mgr.seat ? "إنت (" + seatLabel(mrun.st.current) + ")" : seatLabel(mrun.st.current);
+      }
+    });
+    renderManager();
+  }
+
+  function renderManager() {
+    if (!mgr) return;
+    var R = mrun, st = R.st;
+    R.normalize();
+    var sg = R.seg(), info = segInfo(sg), round = R.isRound(), ph = st.phase, live = R.isLive();
+    setSuit(segSuit(sg));
+    $("#mg-table").textContent = "طاولة " + mgr.table;
+    $("#mg-who").textContent = mgr.name;
+
+    var tabs = $("#mg-tabs");
+    tabs.textContent = "";
+    SEGS.forEach(function (x, i) {
+      var b = el("button", "tab");
+      b.type = "button";
+      b.setAttribute("aria-selected", String(i === st.seg));
+      b.style.setProperty("--tc", "var(--s" + (segSuit(x) + 1) + ")");
+      b.appendChild(el("span", "dot"));
+      b.appendChild(el("span", null, x.kind === "intro" ? "تعارف" : x.kind === "close" ? "ختام" : (x.r + 1) + " · " + GROUPS[x.r].title));
+      b.addEventListener("click", function () { if (i !== st.seg) R.goSeg(i); });
+      tabs.appendChild(b);
+    });
+    var cur = tabs.children[st.seg];
+    if (cur && cur.scrollIntoView) { try { cur.scrollIntoView({ block: "nearest", inline: "nearest" }); } catch (e) {} }
+
+    $("#mg-eyebrow").textContent = info.eyebrow;
+    $("#mg-title").textContent = info.title;
+    $("#mg-say").textContent = mgSay();
+    $("#mg-live").textContent = mgLiveText();
+
+    var turn = ph === "turns";
+    $("#mg-turn").hidden = !turn;
+    $("#mg-word").hidden = !(turn && round);
+    if (turn) {
+      $("#mg-seat").textContent = st.current;
+      $("#mg-name").textContent = st.current === mgr.seat ? "إنت (" + seatLabel(st.current) + ")" : seatLabel(st.current);
+      var nameIn = $("#mg-name-in");
+      nameIn.hidden = sg.kind !== "intro" || st.current === mgr.seat;
+      if (sg.kind === "intro" && document.activeElement !== nameIn) nameIn.value = seatName(st.current);
+      if (round) $("#mg-word").textContent = wordFor(mgr.table, sg.r, st.current);
+    }
+    $("#mg-timer").hidden = !live;
+    var main = $("#mg-main");
+    main.hidden = false;
+    if (ph === "ready") main.textContent = sg.kind === "intro" ? "ابدأ التعارف" : round ? "ابدأ التحضير" : "ابدأ";
+    else if (ph === "done") { main.textContent = "الفقرة التالية"; main.hidden = st.seg >= LAST_SEG; }
+    else main.textContent = R.runLabel();
+    $("#mg-skip").hidden = !live;
+    $("#mg-skip").textContent = R.skipLabel();
+    $("#mg-reset").hidden = !live;
+
+    $("#mg-helpers").hidden = !round;
+    if (round) {
+      var hl = $("#mg-helper-list");
+      hl.textContent = "";
+      GROUPS[sg.r].helpers.forEach(function (h) { hl.appendChild(el("li", null, h)); });
+    }
+
+    renderMgSeats();
+
+    $("#mg-count").textContent = st.count;
+    document.querySelectorAll("#mg-dur button").forEach(function (b) {
+      b.setAttribute("aria-checked", String(Number(b.dataset.sec) === st.duration));
+    });
+    $("#mg-auto").checked = st.auto;
+    $("#mg-estimate").textContent = R.estimate();
+    if ($("#mg-qr-panel").open) drawMgQR();
+  }
+
+  function renderMgSeats() {
+    var R = mrun, st = R.st, sg = R.seg(), round = R.isRound(), list = $("#mg-seats");
+    var ord = R.order(), nxt = st.phase === "turns" ? R.next() : 0;
+    list.textContent = "";
+    $("#mg-seat-note").textContent = "الترتيب بهالفقرة بيبلّش من رقم " + ord[0] + ". اكبس على رقم عشان تعطيه الدور.";
+    $("#mg-reveal").hidden = !round;
+    $("#mg-reveal").textContent = mgRevealAll ? "خبّي الكلمات الجاية" : "اكشف كل الكلمات";
+    ord.forEach(function (seat) {
+      var isCur = st.phase === "turns" && seat === st.current, isDone = st.done.indexOf(seat) >= 0, isNext = seat === nxt;
+      var li = el("li", "seat-row" + (isCur ? " is-current" : "") + (isDone ? " is-done" : ""));
+      var pick = el("button", "seat-pick");
+      pick.type = "button";
+      pick.setAttribute("aria-label", "أعطِ الدور لرقم " + seat);
+      pick.appendChild(el("span", "seat-badge", String(seat)));
+      pick.addEventListener("click", function () { R.giveTurn(seat); });
+
+      var mid = el("div", "seat-mid");
+      var inp = el("input", "seat-name");
+      inp.type = "text"; inp.maxLength = 30;
+      inp.placeholder = "اسم (اختياري)";
+      inp.value = seatName(seat);
+      inp.setAttribute("aria-label", "اسم صاحب رقم " + seat);
+      inp.addEventListener("input", function () {
+        setSeatName(seat, inp.value.trim());
+        if (st.phase === "turns" && st.current === seat) { $("#mg-name").textContent = seatLabel(seat); $("#mg-say").textContent = mgSay(); }
+      });
+      mid.appendChild(inp);
+      if (mgLive && seat !== mgr.seat) {
+        var le = liveEntry(seat);
+        var drew = le && round && le.rev && le.rev.indexOf(sg.r) >= 0;
+        mid.appendChild(el("span", "seat-status" + (le ? " in" : ""), !le ? "لسّا ما دخل" : drew ? "دخل · سحب كلمته" : "دخل"));
+      }
+      if (round) {
+        var show = mgRevealAll || isCur || isDone || seat === mgr.seat;
+        mid.appendChild(el("span", "seat-word" + (show ? "" : " hidden-word"), show ? wordFor(mgr.table, sg.r, seat) : "•••"));
+      }
+      var pill = el("span", "pill");
+      if (isCur) { pill.classList.add("now"); pill.textContent = "هلّق"; }
+      else if (isDone) {
+        pill.classList.add("done");
+        pill.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+        pill.appendChild(document.createTextNode("حكى"));
+      }
+      else if (isNext) { pill.classList.add("next"); pill.textContent = "الجاي"; }
+      else if (seat === mgr.seat) { pill.classList.add("next"); pill.textContent = "إنت"; }
+      li.appendChild(pick); li.appendChild(mid); li.appendChild(pill);
+      list.appendChild(li);
+    });
+  }
+  function drawMgQR() {
+    var b = baseLink(), v = b ? b + "#table-" + mgr.table : "";
+    $("#mg-qr-out").value = v;
+    drawQRTo($("#mg-qr"), $("#mg-qr-empty"), v, 520);
+  }
+
+  $("#mg-main").addEventListener("click", function () { mrun.main(); });
+  $("#mg-skip").addEventListener("click", function () { mrun.skip(); });
+  $("#mg-reset").addEventListener("click", function () { mrun.resetTimer(); });
+  $("#mg-edit").addEventListener("click", function () { showJoin("manager"); });
+  $("#mg-card").addEventListener("click", showCard);
+  $("#mg-reveal").addEventListener("click", function () { mgRevealAll = !mgRevealAll; renderMgSeats(); });
+  $("#mg-qr-panel").addEventListener("toggle", function () { if ($("#mg-qr-panel").open) drawMgQR(); });
+  $("#mg-name-in").addEventListener("input", function (e) {
+    var seat = mrun.st.current;
+    if (!seat) return;
+    setSeatName(seat, e.target.value.trim());
+    $("#mg-name").textContent = seatLabel(seat);
+    $("#mg-say").textContent = mgSay();
+    renderMgSeats();
+  });
+  document.querySelectorAll("[data-mset]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      mrun.st.count = clamp(mrun.st.count + Number(b.dataset.mset), 2, MAX_SEATS);
+      mrun.save(); renderManager();
+    });
+  });
+  document.querySelectorAll("#mg-dur button").forEach(function (b) {
+    b.addEventListener("click", function () { mrun.st.duration = Number(b.dataset.sec); mrun.save(); renderManager(); });
+  });
+  $("#mg-auto").addEventListener("change", function (e) { mrun.st.auto = e.target.checked; if (!mrun.st.auto) mrun.cancelGrace(); mrun.save(); renderManager(); });
+
+  // ------------------------------------------------------------------
+  // Room screen (#stage) on a projector. Without table managers it calls
+  // each seat number at every table at once. With managers it only keeps
+  // one clock per segment so all tables finish together.
+  // ------------------------------------------------------------------
+  var stJoin = false;
+  var stage = makeRunner({
+    key: "kwh.stage.v3",
+    blockMode: function () { return !!(stage && stage.st.managed); },
+    onTick: function (rem, t) {
+      paintTimer("st", rem, t, stage ? stage.statusText(rem) : "");
+      views.stage.classList.toggle("over", rem <= 0 && !!stage && stage.isLive());
+      if (stage && stage.isLive() && !stJoin) $("#st-main").textContent = stage.runLabel();
+    },
+    render: function () { renderStage(); }
+  });
+
+  function renderStage() {
+    var R = stage, st = R.st;
+    R.normalize();
+    var sg = R.seg(), info = segInfo(sg), ph = st.phase, round = R.isRound();
+    var g = round ? GROUPS[sg.r] : null, live = R.isLive(), managed = R.blockMode();
+    setSuit(segSuit(sg));
+    views.stage.classList.toggle("turns", ph === "turns" && !stJoin);
+    $("#st-eyebrow").textContent = info.eyebrow;
+    $("#st-title").textContent = info.title;
+
+    $("#st-join").hidden = !stJoin;
+    $("#st-ready").hidden = stJoin || ph !== "ready";
+    $("#st-live").hidden = stJoin || !live;
+    $("#st-done").hidden = stJoin || ph !== "done";
+
+    if (ph === "ready") {
+      $("#st-ready-big").textContent = round ? "افتحوا الجولة " + (sg.r + 1) + " على تلفوناتكم" : info.ready;
+      $("#st-ready-sub").textContent = managed ? (round ? "مدير كل طاولة بيبلّش الجولة على طاولته." : info.prompt) :
+        (round ? "لما نبلّش: اكبسوا «اخلط»، وعندكم دقيقة تحضّروا جوابكم." : info.prompt);
+    }
+    var label = ph === "prep" ? "اكبسوا «اخلط» وحضّروا جوابكم" :
+      ph === "talk" ? "نقاش مفتوح على الطاولة" :
+      ph === "block" ? (round ? "الجولة شغّالة على الطاولات" : info.title + " على الطاولات") : "";
+    $("#st-live-label").hidden = ph === "turns";
+    $("#st-live-label").textContent = label;
+    $("#st-seat-line").hidden = ph !== "turns";
+    if (ph === "turns") $("#st-seat").textContent = st.current;
+    if (ph === "done") {
+      var nextSeg = st.seg < LAST_SEG ? SEGS[st.seg + 1] : null;
+      $("#st-done-big").textContent = sg.kind === "close" ? "خلصنا! شكرًا على الحكايات." : (round ? "خلصت الجولة " + (sg.r + 1) : "خلصنا التعارف");
+      $("#st-done-sub").textContent = nextSeg ? "الجاي: " + segInfo(nextSeg).title :
+        "بدكم تضلّوا على تواصل؟ افتحوا «بطاقتي» على التلفون، وخلّوا الطاولة تمسح الرمز.";
+    }
+
+    var q = "";
+    if (round && (ph === "ready" || ph === "prep" || ph === "turns" || ph === "block")) q = g.question;
+    else if (round && ph === "talk") q = TALK_PROMPT;
+    else if (!round && (ph === "turns" || ph === "block")) q = info.prompt;
+    $("#st-q").textContent = q;
+    $("#st-q").hidden = stJoin || !q;
+    $("#st-bridge").hidden = stJoin || !(round && ph === "turns" && st.current !== R.order()[0]);
+
+    var seats = $("#st-seats");
+    seats.textContent = "";
+    seats.hidden = stJoin || ph !== "turns";
+    R.order().forEach(function (seat) {
+      var li = el("li", null, String(seat));
+      if (seat === st.current) li.className = "now";
+      else if (st.done.indexOf(seat) >= 0) li.className = "done";
+      seats.appendChild(li);
+    });
+
+    var main = $("#st-main");
+    main.hidden = false;
+    if (stJoin) main.textContent = "رجوع";
+    else if (ph === "ready") main.textContent = "ابدأ";
+    else if (ph === "done") { main.textContent = "الفقرة التالية"; main.hidden = st.seg >= LAST_SEG; }
+    else main.textContent = R.runLabel();
+    $("#st-skip").hidden = stJoin || !live;
+    $("#st-skip").textContent = R.skipLabel();
+    $("#st-reset").hidden = stJoin || !live;
+    $("#st-prev").disabled = st.seg === 0;
+    $("#st-nextseg").disabled = st.seg === LAST_SEG;
+    $("#st-nextseg").hidden = ph === "done" && !stJoin;
+    $("#st-qr-btn").textContent = stJoin ? "سكّر الرمز" : "رمز الدخول";
+
+    $("#st-count").textContent = st.count;
+    document.querySelectorAll("#st-dur button").forEach(function (b) {
+      b.setAttribute("aria-checked", String(Number(b.dataset.sec) === st.duration));
+    });
+    $("#st-auto").checked = st.auto;
+    $("#st-managed").checked = st.managed;
+    $("#st-estimate").textContent = R.estimate() + " بدك أقصر؟ اقفز جولات بـ«الفقرة التالية».";
+    if (stJoin) drawQRTo($("#st-qr"), $("#st-qr-empty"), baseLink(), 720);
+  }
+
+  function showStage() {
+    showView("stage");
+    if (stWatch) stWatch();
+    stWatch = watchDay(function (docs) {
+      var people = 0, tables = 0;
+      (docs || []).forEach(function (d) {
+        var n = d && d.seats ? Object.keys(d.seats).length : 0;
+        if (n) { tables++; people += n; }
+      });
+      $("#st-joined").textContent = docs ? "دخلوا لحد هلّق: " + people + " على " + tables + " طاولة" : "";
+    });
+    renderStage(); stWake();
+  }
+  function stMain() { if (stJoin) { stJoin = false; renderStage(); return; } stage.main(); }
+
+  $("#st-main").addEventListener("click", stMain);
+  $("#st-skip").addEventListener("click", function () { stage.skip(); });
+  $("#st-reset").addEventListener("click", function () { stage.resetTimer(); });
+  $("#st-prev").addEventListener("click", function () { stJoin = false; stage.goSeg(stage.st.seg - 1); });
+  $("#st-nextseg").addEventListener("click", function () { stJoin = false; stage.goSeg(stage.st.seg + 1); });
+  $("#st-qr-btn").addEventListener("click", function () { stJoin = !stJoin; renderStage(); });
+  $("#st-link").value = appLink;
+  $("#st-link").addEventListener("input", function (e) {
+    appLink = e.target.value.trim();
+    store.set(LINK_KEY, appLink);
+    if (stJoin) drawQRTo($("#st-qr"), $("#st-qr-empty"), baseLink(), 720);
+  });
+  document.querySelectorAll("[data-sset]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      stage.st.count = clamp(stage.st.count + Number(b.dataset.step), 2, MAX_SEATS);
+      stage.save(); renderStage();
+    });
+  });
+  document.querySelectorAll("#st-dur button").forEach(function (b) {
+    b.addEventListener("click", function () { stage.st.duration = Number(b.dataset.sec); stage.save(); renderStage(); });
+  });
+  $("#st-auto").addEventListener("change", function (e) { stage.st.auto = e.target.checked; if (!stage.st.auto) stage.cancelGrace(); stage.save(); renderStage(); });
+  $("#st-managed").addEventListener("change", function (e) {
+    stage.st.managed = e.target.checked;
+    stage.cancelGrace(); stage.timer.reset();
+    stage.st.phase = "ready"; stage.st.done = []; stage.st.current = 0;
+    stage.save(); renderStage();
+  });
+
+  function toggleFull() {
+    try {
+      if (document.fullscreenElement) { document.exitFullscreen().catch(function () {}); }
+      else if (document.documentElement.requestFullscreen) { document.documentElement.requestFullscreen().catch(function () {}); }
+    } catch (e) {}
+  }
+  $("#st-full").hidden = !document.fullscreenEnabled;
+  $("#st-full").addEventListener("click", toggleFull);
+
+  var idleT = null;
+  function stWake() {
+    var v = views.stage;
+    v.classList.remove("idle");
+    clearTimeout(idleT);
+    idleT = setTimeout(function () { v.classList.add("idle"); }, 4000);
+  }
+  ["mousemove", "touchstart", "keydown", "click"].forEach(function (evName) {
+    document.addEventListener(evName, function () { if (!views.stage.hidden) stWake(); }, { passive: true });
+  });
+  document.addEventListener("keydown", function (e) {
+    if (views.stage.hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+    var tag = (e.target && e.target.tagName) || "";
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+    var isSpace = e.key === " " || e.code === "Space";
+    if ((tag === "BUTTON" || tag === "SUMMARY" || tag === "A") && (isSpace || e.key === "Enter")) return;
+    if (isSpace) { e.preventDefault(); stMain(); }
+    else if (e.key === "ArrowLeft" || e.key === "n" || e.key === "N") { if (stage.isLive() && !stJoin) stage.skip(); }
+    else if (e.key === "r" || e.key === "R") { if (stage.isLive()) stage.resetTimer(); }
+    else if (e.key === "f" || e.key === "F") { toggleFull(); }
+  });
+
+  // ------------------------------------------------------------------
+  // Routing: "#stage" room screen, "#facilitator" (or "#manager") the
+  // table manager, "#table-7" pre-fills table 7 for participants.
+  // Without a hash, the phone opens whatever role it last joined as.
+  // ------------------------------------------------------------------
+  function route() {
+    var h = "";
+    try { h = decodeURIComponent((location.hash || "").replace(/^#/, "")); } catch (e) {}
+    if (!ptEl.hidden) { pTimer.reset(); ptEl.hidden = true; }
+    if (h !== "stage" && !views.stage.hidden) { stage.cancelGrace(); stage.timer.pause(); }
+    if (h === "stage") { showStage(); return; }
+    if (h === "facilitator" || h === "manager") { showManager(); return; }
+    var m = /^table-(\d{1,2})$/.exec(h);
+    hashTable = m ? clamp(Number(m[1]), 1, 99) : null;
+    if (hashTable) {
+      if (player && player.table === hashTable && role === "player") showPlay();
+      else showJoin("player");
+      return;
+    }
+    if (role === "manager" && mgr) { showManager(); return; }
+    if (player) { showPlay(); return; }
+    showJoin("player");
+  }
+  window.addEventListener("hashchange", route);
+  route();
+})();
+</script>
