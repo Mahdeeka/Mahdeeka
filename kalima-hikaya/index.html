@@ -209,6 +209,10 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 .confirm-box{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
 .table-chip{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface-2);border-radius:var(--r-sm);padding:8px 14px}
 .table-chip strong{font-size:18px}
+.join-banner{display:flex;flex-direction:column;gap:4px;border-color:var(--suit)}
+.jb-line{font-size:19px;font-weight:700;line-height:1.4}
+.jb-line strong{font-family:var(--font-word);font-weight:400;font-size:44px;line-height:1.1;color:var(--suit-ink);vertical-align:middle;margin-inline-start:6px}
+.join-banner .btn-text{align-self:flex-start}
 .field-label{font-weight:600;font-size:15px}
 .mg-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .mg-table{font-family:var(--font-word);font-weight:400;font-size:clamp(40px,11vw,54px);line-height:1.15;color:var(--suit-ink)}
@@ -416,11 +420,6 @@ details.panel[open] > summary::after{content:"−"}
 
     <form id="join-form" class="panel join-form" novalidate>
       <div class="join-step" id="step-table">
-        <div class="role-switch" role="group" aria-label="مين إنت؟">
-          <button type="button" id="role-player" aria-pressed="true">مشارك</button>
-          <button type="button" id="role-manager" aria-pressed="false">مدير طاولة</button>
-        </div>
-        <p class="help role-note" id="role-note"></p>
         <div class="field">
           <label for="in-table" class="step-q">شو رقم طاولتك؟</label>
           <div class="stepper big">
@@ -446,6 +445,11 @@ details.panel[open] > summary::after{content:"−"}
 
       <div class="join-step" id="step-seat" hidden>
         <div class="table-chip"><strong id="chip-table">طاولة 1</strong><button type="button" class="btn-text" id="chip-change">تغيير الطاولة</button></div>
+        <div class="role-switch" role="group" aria-label="مين إنت؟">
+          <button type="button" id="role-player" aria-pressed="true">مشارك</button>
+          <button type="button" id="role-manager" aria-pressed="false">مدير طاولة</button>
+        </div>
+        <p class="help role-note" id="role-note"></p>
         <div class="field">
           <label for="in-name">شو اسمك؟</label>
           <input id="in-name" type="text" autocomplete="given-name" maxlength="30" placeholder="الاسم الأول بكفي" enterkeyhint="done">
@@ -464,9 +468,10 @@ details.panel[open] > summary::after{content:"−"}
             <input type="radio" name="seat" id="seat-9" value="9"><label for="seat-9">9</label>
             <input type="radio" name="seat" id="seat-10" value="10"><label for="seat-10">10</label>
           </div>
-          <p class="help">رقم 1 هو مدير الطاولة، وبعده مع عقارب الساعة: 2، 3، 4… كل رقم على الطاولة بتطلعله كلمة مختلفة.</p>
+          <p class="help">رقم 1 للمدير. اختار رقم مش مأخوذ. كل رقم على الطاولة بتطلعله كلمة مختلفة.</p>
           <p class="seat-live" id="seat-live" aria-live="polite"></p>
         </fieldset>
+        <p class="help" id="auto-note" hidden>رقمك ودورك بالحكي بيطلعولك لحالهم.</p>
         <div class="field" id="count-field" hidden>
           <span class="field-label" id="lbl-jcount">كم واحد على الطاولة؟ (مع المدير)</span>
           <div class="stepper" role="group" aria-labelledby="lbl-jcount">
@@ -474,7 +479,7 @@ details.panel[open] > summary::after{content:"−"}
             <output id="in-count">8</output>
             <button type="button" id="cnt-plus" aria-label="أكثر">+</button>
           </div>
-          <p class="help">إنت رقم 1. الباقي بيعدّوا بعدك مع عقارب الساعة.</p>
+          <p class="help">إنت رقم 1. الباقي بتطلعلهم أرقامهم لحالهم لما يدخلوا.</p>
         </div>
         <p class="form-error" id="join-error" role="alert" hidden></p>
         <button class="btn btn-primary btn-big" type="submit" id="join-submit">يلّا نبلّش</button>
@@ -482,8 +487,8 @@ details.panel[open] > summary::after{content:"−"}
     </form>
 
     <ol class="steps">
-      <li>اكتب رقم طاولتك وأكّده.</li>
-      <li>اكتب اسمك واختار رقمك على الطاولة.</li>
+      <li>امسح الرمز اللي على طاولتك.</li>
+      <li>اكتب اسمك، ورقمك بيطلع لحاله.</li>
       <li>بكل جولة اكبس «اخلط»، ومدير الطاولة بيدير الأدوار والوقت.</li>
     </ol>
     <footer class="foot"><a class="quiet-link" href="#stage">شاشة القاعة (للبروجكتر)</a></footer>
@@ -501,6 +506,13 @@ details.panel[open] > summary::after{content:"−"}
         <button class="btn-text" id="btn-edit" type="button">تغيير</button>
       </div>
     </header>
+
+    <section class="panel join-banner" id="join-banner" hidden>
+      <p class="eyebrow">أهلا وسهلا</p>
+      <p class="jb-line">رقمك <strong id="jb-seat"></strong></p>
+      <p class="help">على <span id="jb-table"></span>. هو كمان دورك بالحكي، ومدير الطاولة بيناديك باسمك.</p>
+      <button class="btn-text" id="jb-ok" type="button">تمام</button>
+    </section>
 
     <nav class="pips" id="pips" aria-label="الجولات"></nav>
 
@@ -739,7 +751,7 @@ details.panel[open] > summary::after{content:"−"}
             <canvas id="st-qr" width="720" height="720" hidden></canvas>
             <p class="qr-empty" id="st-qr-empty">الصق رابط الصفحة تحت وبيطلع الرمز هون.</p>
           </div>
-          <p class="st-sub">اكتبوا اسمكم ورقم طاولتكم. مدير الطاولة رقم 1، والباقي بالدور مع عقارب الساعة.</p>
+          <p class="st-sub">أحسن تمسحوا الرمز اللي على طاولتكم. بعدها بس اسمكم، ورقمكم بيطلع لحاله.</p>
           <p class="st-joined" id="st-joined"></p>
           <div class="st-join-link"><input id="st-link" type="url" dir="ltr" inputmode="url" placeholder="https://…" autocomplete="off" aria-label="رابط الصفحة للرمز"></div>
         </div>
@@ -1134,6 +1146,25 @@ details.panel[open] > summary::after{content:"−"}
       return seats;
     });
   }
+  // Give this phone the lowest free number from 2 up (1 is the manager);
+  // a phone that already holds a number at this table keeps it.
+  function claimNextSeat(t, name) {
+    var assigned = 0;
+    return txTable(t, function (seats) {
+      assigned = 0;
+      Object.keys(seats).forEach(function (k) {
+        var e = seats[k];
+        if (e && e.id === deviceId && e.role !== "m" && !assigned) assigned = Number(k.slice(1));
+      });
+      for (var n = 2; !assigned && n <= MAX_SEATS; n++) if (!seats["s" + n]) assigned = n;
+      if (!assigned) { var err = new Error("full"); err.code = "full"; throw err; }
+      var cur = seats["s" + assigned];
+      var keepRev = (cur && cur.id === deviceId && cur.rev) || [];
+      Object.keys(seats).forEach(function (k) { if (seats[k] && seats[k].id === deviceId) delete seats[k]; });
+      seats["s" + assigned] = { id: deviceId, name: name, role: "p", at: Date.now(), rev: keepRev };
+      return seats;
+    }).then(function () { return assigned; });
+  }
   function releaseSeats(t) {
     return txTable(t, function (seats) {
       Object.keys(seats).forEach(function (k) { if (seats[k] && seats[k].id === deviceId) delete seats[k]; });
@@ -1178,6 +1209,8 @@ details.panel[open] > summary::after{content:"−"}
   var ROLE_KEY = "kwh.role.v1";
   var role = store.get(ROLE_KEY, "player") === "manager" ? "manager" : "player";
   var joinRole = role, joinCount = 8, hashTable = null, confirmedTable = 0;
+  var seatAuto = true, bannerSeat = 0;
+  function useAuto() { return joinRole === "player" && seatAuto && liveOn(); }
 
   function setJoinRole(r) {
     joinRole = r;
@@ -1185,7 +1218,8 @@ details.panel[open] > summary::after{content:"−"}
     $("#role-player").setAttribute("aria-pressed", String(!m));
     $("#role-manager").setAttribute("aria-pressed", String(m));
     $("#count-field").hidden = !m;
-    $("#seat-field").hidden = m;
+    $("#seat-field").hidden = m || useAuto();
+    $("#auto-note").hidden = m || !useAuto();
     $("#seat-legend").textContent = "اختار رقمك (هو دورك بالحكي)";
     $("#join-submit").textContent = m ? "افتح شاشة المدير" : "يلّا نبلّش";
     $("#role-note").textContent = m ? "مدير الطاولة بيدير الأدوار والمؤقّت، وبيشوف كلمة كل واحد والأسئلة المساعدة." : "";
@@ -1263,11 +1297,13 @@ details.panel[open] > summary::after{content:"−"}
     seatGrid.querySelectorAll("input").forEach(function (i) { i.checked = Number(i.value) === s; });
     joinCount = (mrun && mrun.st.count) || 8;
     $("#in-count").textContent = joinCount;
+    seatAuto = true;
     setJoinRole(want);
     showView("join");
-    // Someone fixing their name or number keeps the table they already confirmed.
-    if (src && src.table && (!hashTable || hashTable === src.table)) { inTable.value = src.table; tableConfirmed(); }
-    else if (hashTable) askConfirm();
+    // A table's own QR already says which table: go straight to the name.
+    // Someone fixing their name keeps the table they already confirmed.
+    if (hashTable) { inTable.value = hashTable; tableConfirmed(); }
+    else if (src && src.table) { inTable.value = src.table; tableConfirmed(); }
     else joinStep("table");
   }
   function joinError(msg, focusEl) {
@@ -1297,7 +1333,25 @@ details.panel[open] > summary::after{content:"−"}
     var m = joinRole === "manager";
     if (!name) return joinError("اكتب اسمك عشان نبلّش.", inName);
     if (!(table >= 1 && table <= 99)) { joinStep("table"); return; }
-    if (!m && !seatEl) return joinError("اختار رقمك: مدير الطاولة رقم 1، وبعده مع عقارب الساعة.");
+    if (useAuto()) {
+      var abtn = $("#join-submit"), alabel = abtn.textContent;
+      var aprev = player && player.table;
+      abtn.disabled = true; abtn.textContent = "عم نعطيك رقم…";
+      claimNextSeat(table, name).then(function (got) {
+        abtn.disabled = false; abtn.textContent = alabel;
+        if (aprev && aprev !== table) releaseSeats(aprev);
+        bannerSeat = got;
+        finishJoin(name, table, got, false);
+      }, function (err) {
+        abtn.disabled = false; abtn.textContent = alabel;
+        if (err && err.code === "full") return joinError("طاولة " + table + " مليانة (10 أشخاص). اسأل المنظّمين عن طاولة ثانية.");
+        seatAuto = false; // no connection: let them pick a number by hand
+        setJoinRole("player");
+        joinError("ما قدرنا نعطيك رقم لحاله. اختار رقمك وكمّل.");
+      });
+      return;
+    }
+    if (!m && !seatEl) return joinError("اختار رقمك. رقم 1 للمدير.");
     var seat = m ? 1 : Number(seatEl.value);
     if (!m && takenSeats[seat]) return joinError("رقم " + seat + " محجوز لـ" + takenSeats[seat] + ". اختار رقم ثاني.");
     if (liveOn()) {
@@ -1352,10 +1406,17 @@ details.panel[open] > summary::after{content:"−"}
   var shuffling = false;
 
   function showPlay() { showView("play"); renderPlay(); }
+  function paintBanner() {
+    var on = !!(bannerSeat && player && bannerSeat === player.seat);
+    $("#join-banner").hidden = !on;
+    if (on) { $("#jb-table").textContent = "طاولة " + player.table; $("#jb-seat").textContent = player.seat; }
+  }
+  $("#jb-ok").addEventListener("click", function () { bannerSeat = 0; paintBanner(); });
 
   function renderPlay() {
     var r = player.round, g = GROUPS[r];
     setSuit(r);
+    paintBanner();
     $("#p-avatar").textContent = player.name.charAt(0);
     $("#p-name").textContent = player.name;
     $("#p-meta").textContent = "طاولة " + player.table + " · رقم " + player.seat;
@@ -1404,6 +1465,7 @@ details.panel[open] > summary::after{content:"−"}
   function doShuffle() {
     if (shuffling) return;
     shuffling = true;
+    bannerSeat = 0; paintBanner();
     var r = player.round, g = GROUPS[r];
     var finalWord = wordFor(player.table, r, player.seat);
     var btn = $("#btn-shuffle"), cWord = $("#c-word");
@@ -1877,7 +1939,7 @@ details.panel[open] > summary::after{content:"−"}
     var R = mrun, st = R.st, sg = R.seg(), ph = st.phase, first = R.order()[0];
     if (sg.kind === "intro") {
       if (ph === "ready") return "كل واحد بيعرّف عن حاله بـ30 ثانية: اسمه، شو بيشتغل، وشو بيدوّر عليه هالفترة. " +
-        (first === mgr.seat ? "ببلّش أنا، وبعدين مع عقارب الساعة." : "بنبلّش من رقم " + first + ".");
+        (first === mgr.seat ? "ببلّش أنا، وبعدين بالترتيب حسب الأرقام." : "بنبلّش من رقم " + first + ".");
       if (ph === "turns") return st.current === mgr.seat ? "دورك: عرّف عن حالك أول واحد، وهيك بتعطي مثال للطاولة." :
         seatLabel(st.current) + "، تفضّل: اسمك، شو بتشتغل، وشو بتدوّر عليه؟";
       return "خلصنا التعارف. الجاي: الجولة 1.";
@@ -1904,6 +1966,9 @@ details.panel[open] > summary::after{content:"−"}
     mgLive = null;
     mgWatch = watchTable(mgr.table, function (seats) {
       mgLive = seats;
+      var top = 0;
+      if (seats) Object.keys(seats).forEach(function (k) { if (seats[k]) top = Math.max(top, Number(k.slice(1))); });
+      if (top > mrun.st.count) { mrun.st.count = clamp(top, 2, MAX_SEATS); mrun.save(); if (!views.fac.hidden) renderManager(); }
       if (!views.fac.hidden) {
         $("#mg-live").textContent = mgLiveText();
         // Don't rebuild the roster under the manager's fingers while they type a name.
