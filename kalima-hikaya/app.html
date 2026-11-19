@@ -116,6 +116,8 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 .seat-grid input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
 .seat-grid label{display:grid;place-items:center;height:52px;border-radius:var(--r-sm);border:1.5px solid var(--line);background:var(--surface-2);font-weight:700;font-size:19px;font-variant-numeric:tabular-nums;cursor:pointer;transition:background-color .15s ease,color .15s ease,border-color .15s ease}
 .seat-grid input:checked + label{background:var(--suit);border-color:var(--suit);color:var(--on-suit)}
+.seat-grid input:disabled + label{cursor:not-allowed;opacity:.55;background:transparent;border-style:dashed;line-height:1.1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.seat-grid label small{font-size:11px;font-weight:600}
 .seat-grid input:focus-visible + label{outline:3px solid var(--focus);outline-offset:2px}
 .form-error{color:var(--danger);font-weight:600;font-size:15px}
 
@@ -182,6 +184,14 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 .role-switch button{appearance:none;border:0;background:none;border-radius:10px;min-height:46px;font-weight:700;font-size:16px;cursor:pointer;color:var(--muted)}
 .role-switch button[aria-pressed="true"]{background:var(--suit);color:var(--on-suit)}
 .role-note:empty{display:none}
+.join-step{display:flex;flex-direction:column;gap:20px}
+.step-q{font-size:20px;font-weight:700;line-height:1.4}
+.stepper.big button{width:64px;height:64px;font-size:28px}
+.stepper.big input{width:110px;min-height:64px;font-size:34px}
+.confirm-table{font-family:var(--font-word);font-size:clamp(56px,18vw,84px);line-height:1.15;color:var(--suit-ink);text-align:center}
+.confirm-box{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.table-chip{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface-2);border-radius:var(--r-sm);padding:8px 14px}
+.table-chip strong{font-size:18px}
 .field-label{font-weight:600;font-size:15px}
 .mg-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .mg-table{font-family:var(--font-word);font-weight:400;font-size:clamp(40px,11vw,54px);line-height:1.15;color:var(--suit-ink)}
@@ -388,56 +398,75 @@ details.panel[open] > summary::after{content:"−"}
     </header>
 
     <form id="join-form" class="panel join-form" novalidate>
-      <div class="role-switch" role="group" aria-label="مين إنت؟">
-        <button type="button" id="role-player" aria-pressed="true">مشارك</button>
-        <button type="button" id="role-manager" aria-pressed="false">مدير طاولة</button>
-      </div>
-      <p class="help role-note" id="role-note"></p>
-      <div class="field">
-        <label for="in-name">شو اسمك؟</label>
-        <input id="in-name" type="text" autocomplete="given-name" maxlength="30" placeholder="الاسم الأول بكفي" required>
-      </div>
-      <div class="field">
-        <label for="in-table">رقم الطاولة</label>
-        <div class="stepper">
-          <button type="button" id="tbl-minus" aria-label="رقم طاولة أقل">−</button>
-          <input id="in-table" type="number" inputmode="numeric" min="1" max="99" placeholder="—">
-          <button type="button" id="tbl-plus" aria-label="رقم طاولة أكبر">+</button>
+      <div class="join-step" id="step-table">
+        <div class="role-switch" role="group" aria-label="مين إنت؟">
+          <button type="button" id="role-player" aria-pressed="true">مشارك</button>
+          <button type="button" id="role-manager" aria-pressed="false">مدير طاولة</button>
         </div>
-        <p class="help" id="table-note">الرقم مكتوب على كرت الطاولة، أو اسأل مدير الطاولة.</p>
-      </div>
-      <fieldset class="field">
-        <legend id="seat-legend">رقمك = دورك بالحكي</legend>
-        <div class="seat-grid" id="seat-grid">
-          <input type="radio" name="seat" id="seat-1" value="1"><label for="seat-1">1</label>
-          <input type="radio" name="seat" id="seat-2" value="2"><label for="seat-2">2</label>
-          <input type="radio" name="seat" id="seat-3" value="3"><label for="seat-3">3</label>
-          <input type="radio" name="seat" id="seat-4" value="4"><label for="seat-4">4</label>
-          <input type="radio" name="seat" id="seat-5" value="5"><label for="seat-5">5</label>
-          <input type="radio" name="seat" id="seat-6" value="6"><label for="seat-6">6</label>
-          <input type="radio" name="seat" id="seat-7" value="7"><label for="seat-7">7</label>
-          <input type="radio" name="seat" id="seat-8" value="8"><label for="seat-8">8</label>
-          <input type="radio" name="seat" id="seat-9" value="9"><label for="seat-9">9</label>
-          <input type="radio" name="seat" id="seat-10" value="10"><label for="seat-10">10</label>
+        <p class="help role-note" id="role-note"></p>
+        <div class="field">
+          <label for="in-table" class="step-q">شو رقم طاولتك؟</label>
+          <div class="stepper big">
+            <button type="button" id="tbl-minus" aria-label="رقم طاولة أقل">−</button>
+            <input id="in-table" type="number" inputmode="numeric" min="1" max="99" placeholder="—" enterkeyhint="next">
+            <button type="button" id="tbl-plus" aria-label="رقم طاولة أكبر">+</button>
+          </div>
+          <p class="help" id="table-note">الرقم مكتوب على كرت الطاولة.</p>
         </div>
-        <p class="help">اللي قدّام كرت الطاولة رقم 1، وبعده مع عقارب الساعة. كل رقم على الطاولة بتطلعله كلمة مختلفة.</p>
-      </fieldset>
-      <div class="field" id="count-field" hidden>
-        <span class="field-label" id="lbl-jcount">كم واحد على الطاولة؟ (مع المدير)</span>
-        <div class="stepper" role="group" aria-labelledby="lbl-jcount">
-          <button type="button" id="cnt-minus" aria-label="أقل">−</button>
-          <output id="in-count">8</output>
-          <button type="button" id="cnt-plus" aria-label="أكثر">+</button>
-        </div>
+        <p class="form-error" id="table-error" role="alert" hidden></p>
+        <button class="btn btn-primary btn-big" type="button" id="to-confirm">التالي</button>
       </div>
-      <p class="form-error" id="join-error" role="alert" hidden></p>
-      <button class="btn btn-primary btn-big" type="submit" id="join-submit">يلّا نبلّش</button>
+
+      <div class="join-step" id="step-confirm" hidden>
+        <div class="confirm-box">
+          <p class="step-q">إنت على</p>
+          <p class="confirm-table" id="confirm-table">طاولة 1</p>
+          <p class="help">تأكّد إنه هاد الرقم المكتوب على كرت طاولتك.</p>
+        </div>
+        <button class="btn btn-primary btn-big" type="button" id="confirm-yes">أيوه، هاي طاولتي</button>
+        <button class="btn btn-secondary" type="button" id="confirm-no">لا، غيّر الرقم</button>
+      </div>
+
+      <div class="join-step" id="step-seat" hidden>
+        <div class="table-chip"><strong id="chip-table">طاولة 1</strong><button type="button" class="btn-text" id="chip-change">تغيير الطاولة</button></div>
+        <div class="field">
+          <label for="in-name">شو اسمك؟</label>
+          <input id="in-name" type="text" autocomplete="given-name" maxlength="30" placeholder="الاسم الأول بكفي" enterkeyhint="done">
+        </div>
+        <fieldset class="field" id="seat-field">
+          <legend id="seat-legend">اختار رقمك (هو دورك بالحكي)</legend>
+          <div class="seat-grid" id="seat-grid">
+            <input type="radio" name="seat" id="seat-1" value="1" disabled><label for="seat-1">1<small>المدير</small></label>
+            <input type="radio" name="seat" id="seat-2" value="2"><label for="seat-2">2</label>
+            <input type="radio" name="seat" id="seat-3" value="3"><label for="seat-3">3</label>
+            <input type="radio" name="seat" id="seat-4" value="4"><label for="seat-4">4</label>
+            <input type="radio" name="seat" id="seat-5" value="5"><label for="seat-5">5</label>
+            <input type="radio" name="seat" id="seat-6" value="6"><label for="seat-6">6</label>
+            <input type="radio" name="seat" id="seat-7" value="7"><label for="seat-7">7</label>
+            <input type="radio" name="seat" id="seat-8" value="8"><label for="seat-8">8</label>
+            <input type="radio" name="seat" id="seat-9" value="9"><label for="seat-9">9</label>
+            <input type="radio" name="seat" id="seat-10" value="10"><label for="seat-10">10</label>
+          </div>
+          <p class="help">رقم 1 هو مدير الطاولة، وبعده مع عقارب الساعة: 2، 3، 4… كل رقم على الطاولة بتطلعله كلمة مختلفة.</p>
+        </fieldset>
+        <div class="field" id="count-field" hidden>
+          <span class="field-label" id="lbl-jcount">كم واحد على الطاولة؟ (مع المدير)</span>
+          <div class="stepper" role="group" aria-labelledby="lbl-jcount">
+            <button type="button" id="cnt-minus" aria-label="أقل">−</button>
+            <output id="in-count">8</output>
+            <button type="button" id="cnt-plus" aria-label="أكثر">+</button>
+          </div>
+          <p class="help">إنت رقم 1. الباقي بيعدّوا بعدك مع عقارب الساعة.</p>
+        </div>
+        <p class="form-error" id="join-error" role="alert" hidden></p>
+        <button class="btn btn-primary btn-big" type="submit" id="join-submit">يلّا نبلّش</button>
+      </div>
     </form>
 
     <ol class="steps">
-      <li>امسحوا الرمز، واكتبوا اسمكم ورقم طاولتكم.</li>
-      <li>بكل جولة اكبس «اخلط» وبتطلعلك كلمة وسؤال.</li>
-      <li>كل واحد بدوره بيحكي، ومدير الطاولة بيدير الأدوار والوقت.</li>
+      <li>اكتب رقم طاولتك وأكّده.</li>
+      <li>اكتب اسمك واختار رقمك على الطاولة.</li>
+      <li>بكل جولة اكبس «اخلط»، ومدير الطاولة بيدير الأدوار والوقت.</li>
     </ol>
     <footer class="foot"><a class="quiet-link" href="#stage">شاشة القاعة (للبروجكتر)</a></footer>
   </main>
@@ -691,7 +720,7 @@ details.panel[open] > summary::after{content:"−"}
             <canvas id="st-qr" width="720" height="720" hidden></canvas>
             <p class="qr-empty" id="st-qr-empty">الصق رابط الصفحة تحت وبيطلع الرمز هون.</p>
           </div>
-          <p class="st-sub">اكتبوا اسمكم واختاروا رقمكم حسب مكانكم: اللي قدّام كرت الطاولة رقم 1، وبعده مع عقارب الساعة.</p>
+          <p class="st-sub">اكتبوا اسمكم ورقم طاولتكم. مدير الطاولة رقم 1، والباقي بالدور مع عقارب الساعة.</p>
           <div class="st-join-link"><input id="st-link" type="url" dir="ltr" inputmode="url" placeholder="https://…" autocomplete="off" aria-label="رابط الصفحة للرمز"></div>
         </div>
       </div>
@@ -982,7 +1011,7 @@ details.panel[open] > summary::after{content:"−"}
   function sanitizePlayer(p) {
     if (!p || typeof p !== "object") return null;
     if (typeof p.name !== "string" || !p.name.trim()) return null;
-    if (!(p.seat >= 1 && p.seat <= MAX_SEATS) || !(p.table >= 1 && p.table <= 99)) return null;
+    if (!(p.seat >= 2 && p.seat <= MAX_SEATS) || !(p.table >= 1 && p.table <= 99)) return null; // 1 is the manager
     if (p.day !== dayKey() || !Array.isArray(p.revealed) || p.revealed.length !== GROUPS.length) {
       var f = freshProgress();
       p.day = f.day; p.round = f.round; p.maxRound = f.maxRound; p.revealed = f.revealed;
@@ -998,7 +1027,7 @@ details.panel[open] > summary::after{content:"−"}
   var inName = $("#in-name"), inTable = $("#in-table"), seatGrid = $("#seat-grid");
   var ROLE_KEY = "kwh.role.v1";
   var role = store.get(ROLE_KEY, "player") === "manager" ? "manager" : "player";
-  var joinRole = role, joinCount = 8, hashTable = null;
+  var joinRole = role, joinCount = 8, hashTable = null, confirmedTable = 0;
 
   function setJoinRole(r) {
     joinRole = r;
@@ -1006,9 +1035,37 @@ details.panel[open] > summary::after{content:"−"}
     $("#role-player").setAttribute("aria-pressed", String(!m));
     $("#role-manager").setAttribute("aria-pressed", String(m));
     $("#count-field").hidden = !m;
-    $("#seat-legend").textContent = m ? "رقمك إنت على الطاولة (المدير كمان بيشارك)" : "رقمك = دورك بالحكي";
+    $("#seat-field").hidden = m;
+    $("#seat-legend").textContent = "اختار رقمك (هو دورك بالحكي)";
     $("#join-submit").textContent = m ? "افتح شاشة المدير" : "يلّا نبلّش";
     $("#role-note").textContent = m ? "مدير الطاولة بيدير الأدوار والمؤقّت، وبيشوف كلمة كل واحد والأسئلة المساعدة." : "";
+  }
+  function joinStep(name) {
+    ["table", "confirm", "seat"].forEach(function (n) { $("#step-" + n).hidden = n !== name; });
+    $("#table-error").hidden = true;
+    $("#join-error").hidden = true;
+  }
+  function readTable() {
+    var t = parseInt(inTable.value, 10);
+    return t >= 1 && t <= 99 ? t : 0;
+  }
+  function askConfirm() {
+    var t = readTable();
+    if (!t) {
+      var e = $("#table-error");
+      e.textContent = inTable.value.trim() ? "رقم الطاولة لازم يكون بين 1 و-99." : "اكتب رقم الطاولة. الرقم مكتوب على كرت الطاولة.";
+      e.hidden = false; inTable.focus();
+      return;
+    }
+    $("#confirm-table").textContent = "طاولة " + t;
+    joinStep("confirm");
+    $("#confirm-yes").focus();
+  }
+  function tableConfirmed() {
+    confirmedTable = readTable();
+    $("#chip-table").textContent = "طاولة " + confirmedTable;
+    joinStep("seat");
+    if (!inName.value) inName.focus();
   }
   function showJoin(r) {
     var want = r || joinRole;
@@ -1016,20 +1073,27 @@ details.panel[open] > summary::after{content:"−"}
     setSuit(0);
     inName.value = src ? src.name : "";
     inTable.value = hashTable || (src && src.table) || "";
-    $("#table-note").textContent = hashTable ? "رقم الطاولة إجا من رمز الطاولة." : "الرقم مكتوب على كرت الطاولة، أو اسأل مدير الطاولة.";
-    var s = src ? src.seat : 0;
+    $("#table-note").textContent = hashTable ? "رقم الطاولة إجا من رمز الطاولة." : "الرقم مكتوب على كرت الطاولة.";
+    var s = src && want === "player" ? src.seat : 0;
     seatGrid.querySelectorAll("input").forEach(function (i) { i.checked = Number(i.value) === s; });
     joinCount = (mrun && mrun.st.count) || 8;
     $("#in-count").textContent = joinCount;
     setJoinRole(want);
-    $("#join-error").hidden = true;
     showView("join");
+    // Someone fixing their name or number keeps the table they already confirmed.
+    if (src && src.table && (!hashTable || hashTable === src.table)) { inTable.value = src.table; tableConfirmed(); }
+    else if (hashTable) askConfirm();
+    else joinStep("table");
   }
   function joinError(msg, focusEl) {
     var e = $("#join-error");
     e.textContent = msg; e.hidden = false;
     if (focusEl) focusEl.focus();
   }
+  $("#to-confirm").addEventListener("click", askConfirm);
+  $("#confirm-yes").addEventListener("click", tableConfirmed);
+  $("#confirm-no").addEventListener("click", function () { joinStep("table"); inTable.focus(); inTable.select(); });
+  $("#chip-change").addEventListener("click", function () { joinStep("table"); inTable.focus(); inTable.select(); });
   $("#role-player").addEventListener("click", function () { setJoinRole("player"); });
   $("#role-manager").addEventListener("click", function () { setJoinRole("manager"); });
   $("#tbl-minus").addEventListener("click", function () { inTable.value = clamp((parseInt(inTable.value, 10) || 1) - 1, 1, 99); });
@@ -1039,16 +1103,17 @@ details.panel[open] > summary::after{content:"−"}
 
   joinForm.addEventListener("submit", function (ev) {
     ev.preventDefault();
+    // Enter on the first two steps moves forward instead of submitting.
+    if (!$("#step-table").hidden) { askConfirm(); return; }
+    if (!$("#step-confirm").hidden) { tableConfirmed(); return; }
     var name = inName.value.trim().replace(/\s+/g, " ").slice(0, 30);
-    var table = parseInt(inTable.value, 10);
+    var table = confirmedTable;
     var seatEl = seatGrid.querySelector("input:checked");
     var m = joinRole === "manager";
     if (!name) return joinError("اكتب اسمك عشان نبلّش.", inName);
-    if (!inTable.value.trim()) return joinError("اكتب رقم الطاولة. الرقم مكتوب على كرت الطاولة.", inTable);
-    if (!(table >= 1 && table <= 99)) return joinError("رقم الطاولة لازم يكون بين 1 و-99.", inTable);
-    if (!seatEl) return joinError(m ? "اختار رقمك إنت على الطاولة." : "اختار رقمك: اللي قدّام كرت الطاولة رقم 1، وبعده مع عقارب الساعة.");
-    var seat = Number(seatEl.value);
-    if (m && seat > joinCount) return joinError("رقمك (" + seat + ") أكبر من عدد الناس على الطاولة (" + joinCount + ").");
+    if (!(table >= 1 && table <= 99)) { joinStep("table"); return; }
+    if (!m && !seatEl) return joinError("اختار رقمك: مدير الطاولة رقم 1، وبعده مع عقارب الساعة.");
+    var seat = m ? 1 : Number(seatEl.value);
     role = joinRole;
     store.set(ROLE_KEY, role);
     if (m) {
@@ -1551,7 +1616,7 @@ details.panel[open] > summary::after{content:"−"}
   var mgr = (function () {
     var m = store.get(MG_KEY, null);
     if (!m || typeof m !== "object" || typeof m.name !== "string" || !(m.table >= 1 && m.table <= 99)) return null;
-    if (!(m.seat >= 1 && m.seat <= MAX_SEATS)) m.seat = 1;
+    m.seat = 1; // the manager is always number 1
     if (!m.names || typeof m.names !== "object") m.names = {};
     return m;
   })();
@@ -1585,13 +1650,15 @@ details.panel[open] > summary::after{content:"−"}
   function mgSay() {
     var R = mrun, st = R.st, sg = R.seg(), ph = st.phase, first = R.order()[0];
     if (sg.kind === "intro") {
-      if (ph === "ready") return "كل واحد بيعرّف عن حاله بـ30 ثانية: اسمه، شو بيشتغل، وشو بيدوّر عليه هالفترة. بنبلّش من رقم " + first + ".";
-      if (ph === "turns") return seatLabel(st.current) + "، تفضّل: اسمك، شو بتشتغل، وشو بتدوّر عليه؟";
+      if (ph === "ready") return "كل واحد بيعرّف عن حاله بـ30 ثانية: اسمه، شو بيشتغل، وشو بيدوّر عليه هالفترة. " +
+        (first === mgr.seat ? "ببلّش أنا، وبعدين مع عقارب الساعة." : "بنبلّش من رقم " + first + ".");
+      if (ph === "turns") return st.current === mgr.seat ? "دورك: عرّف عن حالك أول واحد، وهيك بتعطي مثال للطاولة." :
+        seatLabel(st.current) + "، تفضّل: اسمك، شو بتشتغل، وشو بتدوّر عليه؟";
       return "خلصنا التعارف. الجاي: الجولة 1.";
     }
     if (sg.kind === "close") {
       if (ph === "ready") return "كل واحد 45 ثانية: إشي بيقدر يقدّمه، وإشي بيدوّر عليه. إذا بتعرفوا حدا بيقدر يساعد، احكوا.";
-      if (ph === "turns") return seatLabel(st.current) + ": شو بتقدر تقدّم، وشو بتدوّر عليه؟";
+      if (ph === "turns") return st.current === mgr.seat ? "دورك: شو بتقدر تقدّم، وشو بتدوّر عليه؟" : seatLabel(st.current) + ": شو بتقدر تقدّم، وشو بتدوّر عليه؟";
       return "افتحوا «بطاقتي» على التلفون، وامسحوا بطاقات بعض عشان تضلّوا على تواصل. شكرًا!";
     }
     var g = GROUPS[sg.r];
@@ -1643,9 +1710,9 @@ details.panel[open] > summary::after{content:"−"}
     $("#mg-word").hidden = !(turn && round);
     if (turn) {
       $("#mg-seat").textContent = st.current;
-      $("#mg-name").textContent = seatLabel(st.current);
+      $("#mg-name").textContent = st.current === mgr.seat ? "إنت (" + seatLabel(st.current) + ")" : seatLabel(st.current);
       var nameIn = $("#mg-name-in");
-      nameIn.hidden = sg.kind !== "intro";
+      nameIn.hidden = sg.kind !== "intro" || st.current === mgr.seat;
       if (sg.kind === "intro" && document.activeElement !== nameIn) nameIn.value = seatName(st.current);
       if (round) $("#mg-word").textContent = wordFor(mgr.table, sg.r, st.current);
     }

@@ -39,11 +39,11 @@ def qr_svg(data: str) -> str:
 
 
 def seating_svg(seats: int, color: str) -> str:
-    """Round table seen from above: the card sits at the top edge, seat 1 faces it, then clockwise."""
+    """Round table seen from above: the card sits at the top edge, seat 1 is the table manager, then clockwise."""
     parts = [f'<svg class="seating" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">',
              f'<circle cx="60" cy="60" r="30" fill="{color}" fill-opacity=".12" stroke="{color}" stroke-width="1.4"/>',
              f'<rect x="49" y="33" width="22" height="11" rx="2" fill="{color}"/>',
-             '<text x="60" y="41" text-anchor="middle" font-size="6.4" fill="#fff" font-family="Readex Pro, sans-serif">الكرت</text>']
+             '<text x="60" y="41" text-anchor="middle" font-size="6.4" fill="#fff" font-family="Readex Pro, sans-serif">المدير</text>']
     for i in range(seats):
         a = math.radians(-90 + i * 360 / seats)
         x, y = 60 + 45 * math.cos(a), 60 + 45 * math.sin(a)
@@ -69,10 +69,10 @@ def card(n: int, qr: str, seats: int) -> str:
       <div class="table"><span class="table-label">طاولة</span><span class="table-num">{n}</span></div>
       <ol class="steps">
         <li>امسحوا الرمز بكاميرا التلفون.</li>
-        <li>اكتبوا اسمكم ورقم الطاولة: <b>{n}</b>.</li>
-        <li>رقمكم حسب مكانكم: اللي قدّام هالكرت <b>رقم 1</b>، وبعده مع عقارب الساعة.</li>
+        <li>اكتبوا رقم الطاولة <b>{n}</b> وأكّدوه.</li>
+        <li>اكتبوا اسمكم واختاروا رقمكم: مدير الطاولة <b>رقم 1</b>، وبعده مع عقارب الساعة.</li>
       </ol>
-      <p class="mgr">مدير الطاولة: اختار «مدير طاولة» بأول الشاشة.</p>
+      <p class="mgr">مدير الطاولة: اختار «مدير طاولة» بأول الشاشة. إنت رقم 1.</p>
     </div>
     <div class="col-qr">{qr}<span class="scan">امسحوا الرمز</span></div>
     <div class="col-seat">{seating_svg(seats, color)}</div>
