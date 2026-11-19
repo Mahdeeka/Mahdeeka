@@ -1,4 +1,5 @@
-# Explainer video: keep only the finished files, not contact sheets, stills or picture-only renders
+# Explainer video: keep only the light finished files and posters (full-quality renders are rebuilt, see explainer/README.md)
 kalima-hikaya/out/explainer/*
-!kalima-hikaya/out/explainer/final*.mp4
+!kalima-hikaya/out/explainer/final_whatsapp.mp4
+!kalima-hikaya/out/explainer/final_16x9_light.mp4
 !kalima-hikaya/out/explainer/poster*.png
