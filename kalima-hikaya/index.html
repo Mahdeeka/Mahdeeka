@@ -1030,7 +1030,15 @@ details.panel[open] > summary::after{content:"−"}
   // One Firestore document per table per day: kwh_tables/<day>_t<table>
   // { day, table, seats: { s1: {id, name, role, at, rev: [rounds]}, ... } }
   // ------------------------------------------------------------------
-  var FIREBASE_CONFIG = null; // paste the Firebase web config here to turn live tables on
+  // Firebase web config (public by design; access is limited by firebase/firestore.rules).
+  var FIREBASE_CONFIG = {
+    apiKey: "AIzaSyAVHzMq6X9e1tjUeHbVicGGDdjvVV4Rqv8",
+    authDomain: "networking-792e1.firebaseapp.com",
+    projectId: "networking-792e1",
+    storageBucket: "networking-792e1.firebasestorage.app",
+    messagingSenderId: "107758876313",
+    appId: "1:107758876313:web:22720558027cc831162a08"
+  };
   var FB_SDK = "https://www.gstatic.com/firebasejs/10.12.2/";
   var LIVE_COLL = "kwh_tables";
   var deviceId = (function () {
