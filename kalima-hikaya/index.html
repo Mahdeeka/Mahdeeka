@@ -125,7 +125,16 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 .seat-grid label{display:grid;place-items:center;height:52px;border-radius:var(--r-sm);border:1.5px solid var(--line);background:var(--surface-2);font-weight:700;font-size:19px;font-variant-numeric:tabular-nums;cursor:pointer;transition:background-color .15s ease,color .15s ease,border-color .15s ease}
 .seat-grid input:checked + label{background:var(--suit);border-color:var(--suit);color:var(--on-suit)}
 .seat-grid input:disabled + label{cursor:not-allowed;opacity:.55;background:transparent;border-style:dashed;line-height:1.1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
-.seat-grid label small{font-size:11px;font-weight:600}
+.seat-grid label small{font-size:11px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-inline:3px}
+.seat-grid label.taken{opacity:.55;border-style:dashed;background:transparent;cursor:not-allowed}
+.seat-live:empty{display:none}
+.seat-live{font-size:13.5px;font-weight:600;color:var(--suit-ink)}
+.mg-live:empty{display:none}
+.mg-live{font-size:14.5px;font-weight:600;color:var(--suit-ink)}
+.seat-status{padding-inline:8px;font-size:12.5px;color:var(--muted)}
+.seat-status.in{color:var(--suit-ink);font-weight:600}
+.st-joined:empty{display:none}
+.st-joined{font-weight:700;font-size:clamp(16px,min(2vw,3vh),28px)}
 .seat-grid input:focus-visible + label{outline:3px solid var(--focus);outline-offset:2px}
 .form-error{color:var(--danger);font-weight:600;font-size:15px}
 
@@ -456,6 +465,7 @@ details.panel[open] > summary::after{content:"−"}
             <input type="radio" name="seat" id="seat-10" value="10"><label for="seat-10">10</label>
           </div>
           <p class="help">رقم 1 هو مدير الطاولة، وبعده مع عقارب الساعة: 2، 3، 4… كل رقم على الطاولة بتطلعله كلمة مختلفة.</p>
+          <p class="seat-live" id="seat-live" aria-live="polite"></p>
         </fieldset>
         <div class="field" id="count-field" hidden>
           <span class="field-label" id="lbl-jcount">كم واحد على الطاولة؟ (مع المدير)</span>
@@ -606,6 +616,7 @@ details.panel[open] > summary::after{content:"−"}
         <p class="eyebrow" id="mg-eyebrow"></p>
         <h2 class="round-title" id="mg-title"></h2>
       </div>
+      <p class="mg-live" id="mg-live" aria-live="polite"></p>
       <p class="say" id="mg-say"></p>
       <div id="mg-turn" hidden>
         <div class="speaker-head">
@@ -729,6 +740,7 @@ details.panel[open] > summary::after{content:"−"}
             <p class="qr-empty" id="st-qr-empty">الصق رابط الصفحة تحت وبيطلع الرمز هون.</p>
           </div>
           <p class="st-sub">اكتبوا اسمكم ورقم طاولتكم. مدير الطاولة رقم 1، والباقي بالدور مع عقارب الساعة.</p>
+          <p class="st-joined" id="st-joined"></p>
           <div class="st-join-link"><input id="st-link" type="url" dir="ltr" inputmode="url" placeholder="https://…" autocomplete="off" aria-label="رابط الصفحة للرمز"></div>
         </div>
       </div>
@@ -1005,7 +1017,129 @@ details.panel[open] > summary::after{content:"−"}
   function showView(name) {
     Object.keys(views).forEach(function (k) { views[k].hidden = k !== name; });
     try { window.scrollTo(0, 0); } catch (e) {}
+    if (name !== "join" && joinWatch) { joinWatch(); joinWatch = null; }
+    if (name !== "fac" && mgWatch) { mgWatch(); mgWatch = null; }
+    if (name !== "stage" && stWatch) { stWatch(); stWatch = null; }
   }
+
+  // ------------------------------------------------------------------
+  // Live table state (optional). With a Firebase config, the phones at a
+  // table share which numbers are taken, and the manager sees who joined
+  // and who drew their word. Without it (or offline) everything still
+  // works the way it always did; nothing here blocks a person from playing.
+  // One Firestore document per table per day: kwh_tables/<day>_t<table>
+  // { day, table, seats: { s1: {id, name, role, at, rev: [rounds]}, ... } }
+  // ------------------------------------------------------------------
+  var FIREBASE_CONFIG = null; // paste the Firebase web config here to turn live tables on
+  var FB_SDK = "https://www.gstatic.com/firebasejs/10.12.2/";
+  var LIVE_COLL = "kwh_tables";
+  var deviceId = (function () {
+    var id = store.get("kwh.device.v1", "");
+    if (!id) { id = "d" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); store.set("kwh.device.v1", id); }
+    return id;
+  })();
+  var backendP = null;
+  function loadScript(src) {
+    return new Promise(function (res, rej) {
+      var s = document.createElement("script");
+      var t = setTimeout(function () { rej(new Error("timeout")); }, 12000);
+      s.src = src;
+      s.onload = function () { clearTimeout(t); res(); };
+      s.onerror = function () { clearTimeout(t); rej(new Error("load")); };
+      document.head.appendChild(s);
+    });
+  }
+  function liveOn() { return !!(window.__kwhTestBackend || FIREBASE_CONFIG); }
+  function getBackend() {
+    if (backendP) return backendP;
+    if (window.__kwhTestBackend) backendP = Promise.resolve(window.__kwhTestBackend);
+    else if (FIREBASE_CONFIG) {
+      backendP = loadScript(FB_SDK + "firebase-app-compat.js")
+        .then(function () { return loadScript(FB_SDK + "firebase-firestore-compat.js"); })
+        .then(function () {
+          var app = window.firebase.initializeApp(FIREBASE_CONFIG, "kwh");
+          var db = app.firestore();
+          return {
+            watch: function (id, cb, onErr) {
+              return db.collection(LIVE_COLL).doc(id).onSnapshot(function (snap) { cb(snap.exists ? snap.data() : null); }, onErr);
+            },
+            watchDay: function (day, cb, onErr) {
+              return db.collection(LIVE_COLL).where("day", "==", day).onSnapshot(function (q) {
+                cb(q.docs.map(function (d) { return d.data(); }));
+              }, onErr);
+            },
+            tx: function (id, base, mutate) {
+              var ref = db.collection(LIVE_COLL).doc(id);
+              return db.runTransaction(function (t) {
+                return t.get(ref).then(function (snap) {
+                  var seats = (snap.exists && snap.data().seats) || {};
+                  var next = mutate(JSON.parse(JSON.stringify(seats)));
+                  t.set(ref, { day: base.day, table: base.table, seats: next, updatedAt: Date.now() });
+                });
+              });
+            }
+          };
+        });
+    } else backendP = Promise.reject(new Error("off"));
+    backendP.catch(function () {});
+    return backendP;
+  }
+  function withTimeout(pr, ms) {
+    return new Promise(function (res, rej) {
+      var t = setTimeout(function () { var e = new Error("timeout"); e.code = "timeout"; rej(e); }, ms);
+      pr.then(function (v) { clearTimeout(t); res(v); }, function (e) { clearTimeout(t); rej(e); });
+    });
+  }
+  function tableDocId(t) { return dayKey() + "_t" + t; }
+  // cb(seats) on every change; cb(null) when live tables are off or unreachable.
+  function watchTable(t, cb) {
+    var unsub = null, dead = false;
+    if (!liveOn()) { cb(null); return function () {}; }
+    getBackend().then(function (b) {
+      if (dead) return;
+      unsub = b.watch(tableDocId(t), function (d) { cb((d && d.seats) || {}); }, function () { cb(null); });
+    }).catch(function () { cb(null); });
+    return function () { dead = true; if (unsub) unsub(); };
+  }
+  function watchDay(cb) {
+    var unsub = null, dead = false;
+    if (!liveOn()) { cb(null); return function () {}; }
+    getBackend().then(function (b) {
+      if (dead) return;
+      unsub = b.watchDay(dayKey(), cb, function () { cb(null); });
+    }).catch(function () { cb(null); });
+    return function () { dead = true; if (unsub) unsub(); };
+  }
+  function txTable(t, mutate) {
+    if (!liveOn()) return Promise.reject(new Error("off"));
+    return withTimeout(getBackend().then(function (b) { return b.tx(tableDocId(t), { day: dayKey(), table: t }, mutate); }), 8000);
+  }
+  // Take seat `key` for this phone; a seat someone else holds throws {code: "taken"}.
+  function claimSeat(t, seat, name, seatRole, force) {
+    var key = "s" + seat;
+    return txTable(t, function (seats) {
+      var cur = seats[key];
+      if (cur && cur.id !== deviceId && !force) { var e = new Error("taken"); e.code = "taken"; e.holder = cur.name || ""; throw e; }
+      var keepRev = (cur && cur.id === deviceId && cur.rev) || [];
+      Object.keys(seats).forEach(function (k) { if (seats[k] && seats[k].id === deviceId) delete seats[k]; });
+      seats[key] = { id: deviceId, name: name, role: seatRole, at: Date.now(), rev: keepRev };
+      return seats;
+    });
+  }
+  function releaseSeats(t) {
+    return txTable(t, function (seats) {
+      Object.keys(seats).forEach(function (k) { if (seats[k] && seats[k].id === deviceId) delete seats[k]; });
+      return seats;
+    }).catch(function () {});
+  }
+  function markRevealed(t, seat, round) {
+    return txTable(t, function (seats) {
+      var e = seats["s" + seat];
+      if (e && e.id === deviceId) { e.rev = e.rev || []; if (e.rev.indexOf(round) < 0) e.rev.push(round); }
+      return seats;
+    }).catch(function () {});
+  }
+  var joinWatch = null, mgWatch = null, stWatch = null;
 
   // ------------------------------------------------------------------
   // Participant
@@ -1069,12 +1203,47 @@ details.panel[open] > summary::after{content:"−"}
     joinStep("confirm");
     $("#confirm-yes").focus();
   }
+  var takenSeats = {}, mgrForce = false;
   function tableConfirmed() {
     confirmedTable = readTable();
     $("#chip-table").textContent = "طاولة " + confirmedTable;
     joinStep("seat");
     if (!inName.value) inName.focus();
+    mgrForce = false;
+    if (joinWatch) { joinWatch(); joinWatch = null; }
+    takenSeats = {};
+    paintTaken(null);
+    joinWatch = watchTable(confirmedTable, paintTaken);
   }
+  // Show who holds which number at this table; numbers held by others lock.
+  function paintTaken(seats) {
+    takenSeats = {};
+    if (seats) Object.keys(seats).forEach(function (k) {
+      var e = seats[k];
+      if (e && e.id !== deviceId) takenSeats[Number(k.slice(1))] = e.name || "حدا";
+    });
+    seatGrid.querySelectorAll("input").forEach(function (inp) {
+      var n = Number(inp.value), lab = seatGrid.querySelector('label[for="' + inp.id + '"]');
+      var holder = takenSeats[n];
+      lab.textContent = String(n);
+      if (n === 1) { lab.appendChild(el("small", null, holder ? "المدير · " + holder : "المدير")); return; }
+      lab.classList.toggle("taken", !!holder);
+      if (holder) lab.appendChild(el("small", null, holder));
+      if (holder && inp.checked) {
+        inp.checked = false;
+        joinError("رقم " + n + " صار محجوز لـ" + holder + ". اختار رقم ثاني.");
+      }
+    });
+    var count = Object.keys(takenSeats).length;
+    $("#seat-live").textContent = seats ? (count ? "الأرقام المحجوزة مسكّرة، وعليها أسماء أصحابها." : "لسّا ما حدا اختار رقم على هالطاولة.") : "";
+  }
+  seatGrid.addEventListener("change", function (e) {
+    var n = Number(e.target.value);
+    if (takenSeats[n]) {
+      e.target.checked = false;
+      joinError("رقم " + n + " محجوز لـ" + takenSeats[n] + ". اختار رقم ثاني.");
+    } else $("#join-error").hidden = true;
+  });
   function showJoin(r) {
     var want = r || joinRole;
     var src = want === "manager" ? (mgr || player) : (player || mgr);
@@ -1122,7 +1291,33 @@ details.panel[open] > summary::after{content:"−"}
     if (!(table >= 1 && table <= 99)) { joinStep("table"); return; }
     if (!m && !seatEl) return joinError("اختار رقمك: مدير الطاولة رقم 1، وبعده مع عقارب الساعة.");
     var seat = m ? 1 : Number(seatEl.value);
-    role = joinRole;
+    if (!m && takenSeats[seat]) return joinError("رقم " + seat + " محجوز لـ" + takenSeats[seat] + ". اختار رقم ثاني.");
+    if (liveOn()) {
+      var btn = $("#join-submit"), label = btn.textContent;
+      var prevTable = m ? (mgr && mgr.table) : (player && player.table);
+      btn.disabled = true; btn.textContent = "عم نحجز رقمك…";
+      claimSeat(table, seat, name, m ? "m" : "p", m && mgrForce).then(function () {
+        btn.disabled = false; btn.textContent = label;
+        if (prevTable && prevTable !== table) releaseSeats(prevTable);
+        finishJoin(name, table, seat, m);
+      }, function (err) {
+        btn.disabled = false; btn.textContent = label;
+        if (err && err.code === "taken") {
+          if (m) {
+            mgrForce = true;
+            joinError("طاولة " + table + " إلها مدير: " + err.holder + ". إذا هو مش معك، اكبس «افتح شاشة المدير» مرة ثانية وبتصير إنت المدير.");
+          } else joinError("رقم " + seat + " محجوز لـ" + err.holder + ". اختار رقم ثاني.");
+          return;
+        }
+        finishJoin(name, table, seat, m); // offline: let them play anyway
+      });
+      return;
+    }
+    finishJoin(name, table, seat, m);
+  });
+
+  function finishJoin(name, table, seat, m) {
+    role = m ? "manager" : "player";
     store.set(ROLE_KEY, role);
     if (m) {
       var tableChanged = !mgr || mgr.table !== table;
@@ -1142,7 +1337,7 @@ details.panel[open] > summary::after{content:"−"}
     player = sanitizePlayer(base);
     savePlayer();
     showPlay();
-  });
+  }
 
   // ---- play ----
   var card = $("#card"), cardInner = $("#card-inner");
@@ -1234,6 +1429,7 @@ details.panel[open] > summary::after{content:"−"}
       vibrate(40);
       player.revealed[r] = true;
       savePlayer();
+      if (liveOn()) markRevealed(player.table, player.seat, r);
       setTimeout(function () { card.classList.remove("landed"); }, 600);
       $("#draw-block").hidden = true;
       var q = $("#q-block");
@@ -1642,11 +1838,25 @@ details.panel[open] > summary::after{content:"−"}
     render: function () { renderManager(); }
   });
 
+  var mgLive = null; // seats map from the live table, or null
+  function liveEntry(seat) { return mgLive && mgLive["s" + seat]; }
   function seatName(seat) {
     var t = mgr && mgr.names[mgr.table];
     var n = (t && t[seat]) || "";
+    if (!n) { var e = liveEntry(seat); if (e && e.name) n = e.name; }
     if (!n && mgr && seat === mgr.seat) n = mgr.name;
     return n;
+  }
+  function mgLiveText() {
+    if (!mgLive) return "";
+    var st = mrun.st, sg = mrun.seg(), joined = 0, drew = 0;
+    for (var s = 1; s <= st.count; s++) {
+      var e = liveEntry(s);
+      if (e) { joined++; if (sg.kind === "round" && e.rev && e.rev.indexOf(sg.r) >= 0) drew++; }
+    }
+    var txt = "دخلوا " + joined + " من " + st.count;
+    if (sg.kind === "round" && (st.phase === "ready" || st.phase === "prep")) txt += " · سحبوا كلمة الجولة: " + drew;
+    return txt;
   }
   function setSeatName(seat, v) {
     var t = mgr.names[mgr.table] || (mgr.names[mgr.table] = {});
@@ -1682,6 +1892,17 @@ details.panel[open] > summary::after{content:"−"}
     role = "manager";
     store.set(ROLE_KEY, role);
     showView("fac");
+    if (mgWatch) mgWatch();
+    mgLive = null;
+    mgWatch = watchTable(mgr.table, function (seats) {
+      mgLive = seats;
+      if (!views.fac.hidden) {
+        $("#mg-live").textContent = mgLiveText();
+        // Don't rebuild the roster under the manager's fingers while they type a name.
+        if (!$("#mg-seats").contains(document.activeElement)) renderMgSeats();
+        if (mrun.st.phase === "turns") $("#mg-name").textContent = mrun.st.current === mgr.seat ? "إنت (" + seatLabel(mrun.st.current) + ")" : seatLabel(mrun.st.current);
+      }
+    });
     renderManager();
   }
 
@@ -1712,6 +1933,7 @@ details.panel[open] > summary::after{content:"−"}
     $("#mg-eyebrow").textContent = info.eyebrow;
     $("#mg-title").textContent = info.title;
     $("#mg-say").textContent = mgSay();
+    $("#mg-live").textContent = mgLiveText();
 
     var turn = ph === "turns";
     $("#mg-turn").hidden = !turn;
@@ -1779,6 +2001,11 @@ details.panel[open] > summary::after{content:"−"}
         if (st.phase === "turns" && st.current === seat) { $("#mg-name").textContent = seatLabel(seat); $("#mg-say").textContent = mgSay(); }
       });
       mid.appendChild(inp);
+      if (mgLive && seat !== mgr.seat) {
+        var le = liveEntry(seat);
+        var drew = le && round && le.rev && le.rev.indexOf(sg.r) >= 0;
+        mid.appendChild(el("span", "seat-status" + (le ? " in" : ""), !le ? "لسّا ما دخل" : drew ? "دخل · سحب كلمته" : "دخل"));
+      }
       if (round) {
         var show = mgRevealAll || isCur || isDone || seat === mgr.seat;
         mid.appendChild(el("span", "seat-word" + (show ? "" : " hidden-word"), show ? wordFor(mgr.table, sg.r, seat) : "•••"));
@@ -1921,7 +2148,19 @@ details.panel[open] > summary::after{content:"−"}
     if (stJoin) drawQRTo($("#st-qr"), $("#st-qr-empty"), baseLink(), 720);
   }
 
-  function showStage() { showView("stage"); renderStage(); stWake(); }
+  function showStage() {
+    showView("stage");
+    if (stWatch) stWatch();
+    stWatch = watchDay(function (docs) {
+      var people = 0, tables = 0;
+      (docs || []).forEach(function (d) {
+        var n = d && d.seats ? Object.keys(d.seats).length : 0;
+        if (n) { tables++; people += n; }
+      });
+      $("#st-joined").textContent = docs ? "دخلوا لحد هلّق: " + people + " على " + tables + " طاولة" : "";
+    });
+    renderStage(); stWake();
+  }
   function stMain() { if (stJoin) { stJoin = false; renderStage(); return; } stage.main(); }
 
   $("#st-main").addEventListener("click", stMain);

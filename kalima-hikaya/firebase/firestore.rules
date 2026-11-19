@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // كلمة وراها حكاية: one document per table per evening, id "<day>_t<table>",
+    // holding only who took which number (first name + a random phone id).
+    match /kwh_tables/{id} {
+      allow read: if true;
+      allow create, update: if id.matches('^[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}_t[0-9]{1,2}$')
+        && request.resource.data.keys().hasOnly(['day', 'table', 'seats', 'updatedAt'])
+        && request.resource.data.seats is map
+        && request.resource.data.seats.size() <= 10;
+    }
+  }
+}
