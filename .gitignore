@@ -1,0 +1,4 @@
+# Explainer video: keep only the finished files, not contact sheets, stills or picture-only renders
+kalima-hikaya/out/explainer/*
+!kalima-hikaya/out/explainer/final*.mp4
+!kalima-hikaya/out/explainer/poster*.png

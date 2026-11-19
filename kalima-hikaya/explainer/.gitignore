@@ -1,0 +1,2 @@
+# Audio stems are rebuilt from the sources below (beats.py, sfx.mjs, the ffmpeg line in README.md)
+audio/*.wav
