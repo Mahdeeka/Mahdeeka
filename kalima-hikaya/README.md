@@ -15,7 +15,9 @@
 
 ## الروابط
 
-- المشاركين: `https://claude.ai/artifact/HF9xZzyCsDaFTbw6eo41fK` (مفتوح لأي حدا معه الرابط)
+- المشاركين (الرابط اللي بالـQR): `https://mahdeeka.github.io/Mahdeeka/kalima-hikaya/`
+  بيشتغل بعد ما يتفعّل GitHub Pages: Settings ← Pages ← Deploy from a branch ← الفرع `ccr-750e8a47-d173lr` و `/ (root)` ← Save.
+- رابط احتياط على Claude: `https://claude.ai/artifact/HF9xZzyCsDaFTbw6eo41fK`
 - شاشة القاعة (بروجكتر): نفس الرابط وبآخره `#stage`
 - شاشة ميسّر طاولة (اختياري، فيها الأسئلة المساعدة): نفس الرابط وبآخره `#facilitator`
 
